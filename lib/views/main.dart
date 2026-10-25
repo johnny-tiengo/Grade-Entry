@@ -1,5 +1,7 @@
 
 
+import 'package:grade_entry/services/csv_service.dart';
+
 import '../models/nota_fiscal.dart';
 import '../repositories/nota_fiscal_dao.dart';
 import 'dart:io';
@@ -20,6 +22,7 @@ void main() async {
     print("3. Atualizar Registros de Nota Fiscal");
     print("4. Excluir Cadastro de Nota Fiscal");
     print("5. Sair");
+    print("10. Gerar arquivo CSV do banco");
     stdout.write("Escolha uma opção: ");
 
     String? opcao = stdin.readLineSync();
@@ -116,35 +119,35 @@ void main() async {
           stdout.write("Qual o novo número da nota: ");
           int attCampo = int.parse(stdin.readLineSync()!);
           String colunaDB = "numeroNota";
-          var notasFiscais = await nfDao.atualizar(idAtt,colunaDB,attCampo);
+          await nfDao.atualizar(idAtt,colunaDB,attCampo);
           break;
           
           case 2:
           stdout.write("Qual a Data de Recebimento: ");
           DateTime attCampo =  DateTime.parse(stdin.readLineSync()!);
           String colunaDB = "dataRecebimento";
-          var notasFiscais = await nfDao.atualizar(idAtt,colunaDB,attCampo);
+          await nfDao.atualizar(idAtt,colunaDB,attCampo);
           break;
           
           case 3:
           stdout.write("Qual o novo Recebedor: ");
           String attCampo = stdin.readLineSync()!;
           String colunaDB = "recebedor";
-          var notasFiscais = await nfDao.atualizar(idAtt,colunaDB,attCampo);
+          await nfDao.atualizar(idAtt,colunaDB,attCampo);
           break;
           
           case 4:
           stdout.write("Qual o novo número do pedido: ");
           int attCampo = int.parse(stdin.readLineSync()!);
           String colunaDB = "numeroPedido";
-          var notasFiscais = await nfDao.atualizar(idAtt,colunaDB,attCampo);
+          await nfDao.atualizar(idAtt,colunaDB,attCampo);
           break;
           
           case 5:
           stdout.write("Qual a nova chave de acesso: ");
           String attCampo = stdin.readLineSync()!;
           String colunaDB = "chaveAcesso";
-          var notasFiscais = await nfDao.atualizar(idAtt,colunaDB,attCampo);
+          await nfDao.atualizar(idAtt,colunaDB,attCampo);
           break;
           
           case 6:
@@ -161,21 +164,21 @@ void main() async {
             break;
           }
           String colunaDB = "statusNota";
-          var notasFiscais = await nfDao.atualizar(idAtt,colunaDB,attCampo);
+          await nfDao.atualizar(idAtt,colunaDB,attCampo);
           break;
           
           case 7:
           stdout.write("Qual o novo Fornecedor: ");
           String attCampo = stdin.readLineSync()!;
           String colunaDB = "fornecedor";
-          var notasFiscais = await nfDao.atualizar(idAtt,colunaDB,attCampo);
+          await nfDao.atualizar(idAtt,colunaDB,attCampo);
           break;
           
           case 8:
           stdout.write("Qual o novo Centro de Custo: ");
           String attCampo = stdin.readLineSync()!;
           String colunaDB = "centroCusto";
-          var notasFiscais = await nfDao.atualizar(idAtt,colunaDB,attCampo);
+          await nfDao.atualizar(idAtt,colunaDB,attCampo);
           break;
           
           default:
@@ -185,7 +188,7 @@ void main() async {
       case '4':
       stdout.write("Qual o ID da Nota Fiscal deseja deletar os registros: ");
       int idDel = int.parse(stdin.readLineSync()!);
-      var notasFiscais = await nfDao.apagarNota(idDel);
+      await nfDao.apagarNota(idDel);
       break;
 
 
@@ -194,7 +197,8 @@ void main() async {
         print("\nEncerrando o programa... Até logo!");
         break;
 
-
+      case '10':
+        await gerarCSV();
 
       default:
         print("Opção inválida! Tente novamente.");

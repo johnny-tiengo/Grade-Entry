@@ -30,6 +30,11 @@ class NotaFiscal{
             this.dataFinalizacao,            
             });
 
+// Método para retornar uma linha formatada com os dados da NF
+  String toCsv() {
+    return '$id,$numeroNota,$numeroPedido,$dataRecebimento,$dataCadastro,$recebedor,$chaveAcesso,$statusNota,$fornecedor,$centroCusto,$assistenteLog\n';
+  }
+
 @override
 String toString(){
   return "[$id] Nº Nota:$numeroNota | Recebimento:$dataRecebimento | Recebedor:$recebedor | Status:$statusNota | assistentemysql:$dataCadastro";
