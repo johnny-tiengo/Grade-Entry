@@ -1,11 +1,7 @@
-
-
 import 'package:grade_entry/services/csv_service.dart';
-
 import '../models/nota_fiscal.dart';
 import '../repositories/nota_fiscal_dao.dart';
 import 'dart:io';
-
 
 void main() async {
   var nfDao = NotaFiscalDao();

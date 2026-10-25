@@ -1,5 +1,3 @@
-# Grande-Entry
-O Grade Entry é um sistema desenvolvido para realizar o controle e a entrada de notas fiscais CDL, proporcionando maior organização, agilidade e segurança no processo. O projeto será desenvolvido para atender às necessidades da Alares, empresa escolhida como parceira em Poços de Caldas - MG.
 # Grade Entry
 
 O **Grade Entry** é um sistema desenvolvido como projeto acadêmico com o objetivo de auxiliar no **controle, registro e entrada de notas fiscais CDL**, buscando tornar o processo mais organizado, ágil e seguro.

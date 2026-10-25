@@ -3,3 +3,7 @@
 // Garante que apenas Assistentes/Admin cadastrem, 
 // Almoxarife apenas consulte liberações e 
 // Supervisor acesse relatórios.
+
+class Login{
+  
+}

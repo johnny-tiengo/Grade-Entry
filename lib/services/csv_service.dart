@@ -17,7 +17,7 @@ Future<void> gerarCSV() async{
   if(arquivo.existsSync()){
     var sink = arquivo.openWrite();
     
-    // CABEÇALHO DO CSV
+    // CABEÇALHO DO CSV DA NF
     sink.write('ID,NUMERO_NOTA,NUMERO_PEDIDO,DATA_RECEBIMENTO,DATA_CADASTRO,RECEBEDOR,CHAVE_ACESSO,STATUS,FORNECEDOR,CENTRO_CUSTO,ASSISTENTE_LOG\n');
     for (var nf in notasFiscais) {
       sink.write(nf.toCsv());
