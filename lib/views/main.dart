@@ -1,4 +1,5 @@
-import 'package:grade_entry/services/csv_service.dart';
+import 'package:grade_entry/services/csv_service.dart';  // Gerador do CSV
+import 'package:intl/intl.dart'; // Usado para formatar data de formato Brasileiro para o do MySQL
 import '../models/nota_fiscal.dart';
 import '../repositories/nota_fiscal_dao.dart';
 import 'dart:io';
@@ -37,9 +38,20 @@ void main() async {
         stdout.write("Digite a Chave de Acesso: ");
         String chaveAcesso = stdin.readLineSync() ?? "";
 
+        // Padrão visual (24h)
+        final DateFormat formatoBr = DateFormat('dd/MM/yyyy HH:mm:ss');
+        // Padrão aceito pelo MySQL
+        final DateFormat formatoMysql = DateFormat('yyyy-MM-dd HH:mm:ss');
+
         stdout.write("Digite a Data de Recebimento: ");
         String dataReceb = stdin.readLineSync() ?? "";
-        DateTime dataRecebimento = DateTime.parse(dataReceb);
+        stdout.write("Digite a Hora do Recebimento: ");
+        String horaReceb = stdin.readLineSync() ?? "";
+        String entradaBr = dataReceb.trim() + ' ' + horaReceb.trim();
+        
+        DateTime dataHora = formatoBr.parseStrict(entradaBr); // 1. Converte a string BR em DateTime
+        String dataMySQL = formatoMysql.format(dataHora);     // 2. Converte o formato para o MySQL mas em String
+        DateTime dataRecebimento = DateTime.parse(dataMySQL); // 3. Converte para o formato DateTime
 
         stdout.write("Digite o Fornecedor: ");
         String fornecedor = stdin.readLineSync() ?? "";
@@ -62,13 +74,9 @@ void main() async {
         String almoxLog = stdin.readLineSync() ?? "";
         int almoxarifeLog = int.parse(almoxLog);
 
-        stdout.write("Digite que dia Cadastrou: ");
-        String dataCad = stdin.readLineSync() ?? "";
-        DateTime dataCadastro = DateTime.parse(dataCad);
+        DateTime dataCadastro = DateTime.now();
+        String statusNota = 'aberto';
 
-        stdout.write("Digite que dia Finalizou: ");
-        String dataFinaliz = stdin.readLineSync() ?? "";
-        DateTime dataFinalizacao = DateTime.parse(dataFinaliz);
 
         if (chaveAcesso.trim().isEmpty || fornecedor.trim().isEmpty || recebedor.trim().isEmpty || centroCusto.trim().isEmpty) {
           print("Nenhum dos campos podem ser vazios!");
@@ -76,8 +84,8 @@ void main() async {
         }
 
         var novaNF = NotaFiscal(numeroNota: numeroNota, numeroPedido: numeroPedido, chaveAcesso: chaveAcesso,
-        dataRecebimento: dataRecebimento, fornecedor: fornecedor, recebedor: recebedor, centroCusto: centroCusto,
-        assistenteLog: assistenteLog, supervisorLog:supervisorLog, almoxarifeLog:almoxarifeLog, dataFinalizacao:dataFinalizacao);
+        dataRecebimento: dataRecebimento, fornecedor: fornecedor, recebedor: recebedor, centroCusto: centroCusto, statusNota: statusNota,
+        assistenteLog: assistenteLog, supervisorLog:supervisorLog, almoxarifeLog:almoxarifeLog, dataCadastro: dataCadastro);
         print("Salvando no banco de dados...");
         await nfDao.salvar(novaNF);
         break;
@@ -122,6 +130,7 @@ void main() async {
           stdout.write("Qual a Data de Recebimento: ");
           DateTime attCampo =  DateTime.parse(stdin.readLineSync()!);
           String colunaDB = "dataRecebimento";
+
           await nfDao.atualizar(idAtt,colunaDB,attCampo);
           break;
           

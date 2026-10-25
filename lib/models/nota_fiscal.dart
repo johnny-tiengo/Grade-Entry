@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart'; // Usado para formatar data para padrão brasileiro
+
 class NotaFiscal{
   int? id;
   int numeroNota;
@@ -35,8 +37,11 @@ class NotaFiscal{
     return '$id,$numeroNota,$numeroPedido,$dataRecebimento,$dataCadastro,$recebedor,$chaveAcesso,$statusNota,$fornecedor,$centroCusto,$assistenteLog\n';
   }
 
+// Padrão brasileiro (24h)
+final DateFormat formatoBr = DateFormat('dd/MM/yyyy HH:mm:ss');
+
 @override
 String toString(){
-  return "[$id] Nº Nota:$numeroNota | Recebimento:$dataRecebimento | Recebedor:$recebedor | Status:$statusNota | assistentemysql:$dataCadastro";
+  return "[$id] Nº Nota: $numeroNota | Recebimento: ${formatoBr.format(dataRecebimento)} | Recebedor: $recebedor | Status: ${statusNota!.toUpperCase()} |";
   }
 }

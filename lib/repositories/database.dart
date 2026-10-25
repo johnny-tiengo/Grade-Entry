@@ -2,6 +2,7 @@
 import 'package:mysql_client/mysql_client.dart';
 import 'package:dotenv/dotenv.dart';
 
+
 class Database {
   static final _env = DotEnv(includePlatformEnvironment: true)..load();
 

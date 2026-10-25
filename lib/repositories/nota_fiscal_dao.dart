@@ -3,8 +3,7 @@
 // buscarPorNumero(String numero) -> SELECT ... WHERE numero = ...
 // deletar(int id) -> DELETE FROM ...
 
-import 'dart:io';
-
+import 'dart:io'; // Inputs
 import 'package:mysql_client/mysql_client.dart';
 import './database.dart';
 import '../models/nota_fiscal.dart';
