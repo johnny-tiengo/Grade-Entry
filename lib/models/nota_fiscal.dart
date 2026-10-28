@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart'; // Usado para formatar data para padrão brasileiro
 
-class NotaFiscal{
+class NotaFiscal {
   int? id;
   int numeroNota;
   int numeroPedido;
@@ -16,32 +16,33 @@ class NotaFiscal{
   int? almoxarifeLog;
   DateTime? dataFinalizacao;
 
-  NotaFiscal({this.id,
-            required this.numeroNota, //
-            required this.numeroPedido,
-            required this.chaveAcesso,
-            required this.dataRecebimento, //
-            this.dataCadastro,
-            this.statusNota, //
-            required this.fornecedor,
-            required this.recebedor, //
-            required this.centroCusto,
-            this.assistenteLog,
-            this.supervisorLog,
-            this.almoxarifeLog,
-            this.dataFinalizacao,            
-            });
+  NotaFiscal({
+    this.id,
+    required this.numeroNota, //
+    required this.numeroPedido,
+    required this.chaveAcesso,
+    required this.dataRecebimento, //
+    this.dataCadastro,
+    this.statusNota, //
+    required this.fornecedor,
+    required this.recebedor, //
+    required this.centroCusto,
+    this.assistenteLog,
+    this.supervisorLog,
+    this.almoxarifeLog,
+    this.dataFinalizacao,
+  });
 
-// Método para retornar uma linha formatada com os dados da NF
+  // Método para retornar uma linha formatada com os dados da NF
   String toCsv() {
     return '$id,$numeroNota,$numeroPedido,$dataRecebimento,$dataCadastro,$recebedor,$chaveAcesso,$statusNota,$fornecedor,$centroCusto,$assistenteLog\n';
   }
 
-// Padrão brasileiro (24h)
-final DateFormat formatoBr = DateFormat('dd/MM/yyyy HH:mm:ss');
+  // Padrão brasileiro (24h)
+  final DateFormat formatoBr = DateFormat('dd/MM/yyyy HH:mm:ss');
 
-@override
-String toString(){
-  return "[$id] Nº Nota: $numeroNota | Recebimento: ${formatoBr.format(dataRecebimento)} | Recebedor: $recebedor | Status: ${statusNota!.toUpperCase()} |";
+  @override
+  String toString() {
+    return "[$id] Nº Nota: $numeroNota | Recebimento: ${formatoBr.format(dataRecebimento)} | Recebedor: $recebedor | Status: ${statusNota!.toUpperCase()} |";
   }
 }

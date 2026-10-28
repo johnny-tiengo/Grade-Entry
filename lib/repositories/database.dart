@@ -2,7 +2,6 @@
 import 'package:mysql_client/mysql_client.dart';
 import 'package:dotenv/dotenv.dart';
 
-
 class Database {
   static final _env = DotEnv(includePlatformEnvironment: true)..load();
 
@@ -20,7 +19,7 @@ class Database {
       userName: _user,
       password: _password,
       databaseName: _dbName,
-      secure: true, 
+      secure: true,
     );
 
     await conn.connect();
