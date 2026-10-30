@@ -1,3 +1,4 @@
+import 'package:grade_entry/services/auth_service.dart';
 import 'package:grade_entry/services/csv_service.dart'; // Gerador do CSV
 import 'package:intl/intl.dart'; // Usado para formatar data de formato Brasileiro para o do MySQL
 
@@ -7,11 +8,19 @@ import '../repositories/nota_fiscal_dao.dart';
 import 'dart:io';
 
 void main() async {
+  // Login simples integrado ao banco de dados com contingência local
+  var usuario = await AuthService.realizarLoginTerminal();
+  if (usuario == null) {
+    print("Acesso negado. Encerrando o sistema...");
+    return;
+  }
+
   var nfDao = NotaFiscalDao();
   bool executando = true;
 
   print("=========================================");
   print("       SISTEMA DE CADASTRO DE NFs        ");
+  print(" Usuário conectado: ${usuario.nome} (${usuario.perfil})");
   print("=========================================");
 
   while (executando) {
@@ -20,8 +29,11 @@ void main() async {
     print("2. Listar Notas Fiscais Cadastradas");
     print("3. Atualizar Registros de Nota Fiscal");
     print("4. Excluir Cadastro de Nota Fiscal");
-    print("5. Sair");
+    if (usuario.perfil.toLowerCase() == 'admin') {
+      print("6. Gerenciar Usuários [ADMIN]");
+    }
     print("10. Gerar arquivo CSV do banco");
+    print("5. Sair");
     stdout.write("Escolha uma opção: ");
 
     String? opcao = stdin.readLineSync();
@@ -49,7 +61,7 @@ void main() async {
         String dataReceb = stdin.readLineSync() ?? "";
         stdout.write("Digite a Hora do Recebimento: ");
         String horaReceb = stdin.readLineSync() ?? "";
-        String entradaBr = dataReceb.trim() + ' ' + horaReceb.trim();
+        String entradaBr = '${dataReceb.trim()} ${horaReceb.trim()}';
 
         DateTime dataHora = formatoBr.parseStrict(
           entradaBr,
@@ -222,11 +234,21 @@ void main() async {
 
       case '5':
         executando = false;
-        print("\nEncerrando o programa... Até logo!");
+        AuthService.deslogar();
+        print("\nEncerrando o programa... Até logo, ${usuario.nome}!");
+        break;
+
+      case '6':
+        if (usuario.perfil.toLowerCase() == 'admin') {
+          await AuthService.menuGerenciarUsuarios();
+        } else {
+          print("Opção inválida! Tente novamente.");
+        }
         break;
 
       case '10':
         await gerarCSV();
+        break;
 
       default:
         print("Opção inválida! Tente novamente.");
