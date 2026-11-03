@@ -1,4 +1,4 @@
-import 'package:grade_entry/services/auth_service.dart';
+/*import 'package:grade_entry/services/auth_service.dart';
 import 'package:grade_entry/services/csv_service.dart'; // Gerador do CSV
 import 'package:intl/intl.dart'; // Usado para formatar data de formato Brasileiro para o do MySQL
 
@@ -254,4 +254,4 @@ void main() async {
         print("Opção inválida! Tente novamente.");
     }
   }
-}
+}*/
