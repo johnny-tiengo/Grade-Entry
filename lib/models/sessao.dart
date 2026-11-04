@@ -2,13 +2,15 @@
 /// O login (auth_service.dart) só precisa criar uma Sessao depois de autenticar.
 /// Se vocês já tiverem um model de usuário, pode apagar este arquivo e
 /// adaptar os 3 getters abaixo.
-enum Perfil { admin, assistente, supervisor, almoxarife }
+enum Perfil {assistente, supervisor, almoxarife, admin }
+
 
 class Sessao {
   final int usuarioId;
   final String username;
   final Perfil perfil;
-  const Sessao({required this.usuarioId, required this.username, required this.perfil});
+  final int? equipe;
+  const Sessao({required this.usuarioId, required this.username, required this.perfil, required this.equipe});
 
   bool get ehAdmin => perfil == Perfil.admin;
   bool get ehAssistente => perfil == Perfil.assistente;

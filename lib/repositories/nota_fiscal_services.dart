@@ -20,9 +20,10 @@ class NotaFiscalService {
     required String fornecedor,
     required String recebedor,
     required String centroCusto,
-    required int assistenteLog,
-    required int supervisorLog,
-    required int almoxarifeLog,
+    required int usuario,
+    required int? equipe,
+    // required int supervisorLog,
+    // required int almoxarifeLog,
   }) async {
     if (!RegExp(r'^\d{44}$').hasMatch(chaveAcesso)) {
       throw ArgumentError('A chave de acesso deve ter 44 dígitos.');
@@ -40,9 +41,9 @@ class NotaFiscalService {
       fornecedor: fornecedor,
       recebedor: recebedor,
       centroCusto: centroCusto,
-      assistenteLog: assistenteLog,
-      supervisorLog: supervisorLog,
-      almoxarifeLog: almoxarifeLog,
+      usuario: usuario,
+      equipe: equipe,
+
     ));
   }
 
@@ -62,15 +63,15 @@ class NotaFiscalService {
   Future<void> excluir(NotaFiscal nota) => _dao.apagarNota(nota.id!);
 
   /// Só o assistente que deu a entrada pode pedir revisão de uma NF aberta.
-  Future<void> solicitarRevisao(NotaFiscal nota, Sessao quem) async {
-    if (nota.assistenteLog != quem.usuarioId) {
-      throw ArgumentError('Só o assistente responsável por esta NF pode pedir revisão.');
-    }
-    if (nota.statusNota != statusAberto) {
-      throw ArgumentError('Só NFs com status "aberto" podem ir para revisão.');
-    }
-    await _dao.atualizar(nota.id!, 'statusNota', statusRevisao);
-  }
+  // Future<void> solicitarRevisao(NotaFiscal nota, Sessao quem) async {
+  //   if (nota.assistenteLog != quem.usuarioId) {
+  //     throw ArgumentError('Só o assistente responsável por esta NF pode pedir revisão.');
+  //   }
+  //   if (nota.statusNota != statusAberto) {
+  //     throw ArgumentError('Só NFs com status "aberto" podem ir para revisão.');
+  //   }
+  //   await _dao.atualizar(nota.id!, 'statusNota', statusRevisao);
+  // }
 
   /// Supervisor aprova (fechado + dataFinalizacao) ou devolve (aberto).
   Future<void> decidirRevisao(NotaFiscal nota, Sessao quem, {required bool aprovar}) async {

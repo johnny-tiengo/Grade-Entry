@@ -12,37 +12,37 @@ import '../repositories/usuario_dao.dart';
 class AuthService {
   static final UsuarioDao _usuarioDao = UsuarioDao();
 
-  // Usuários de contingência em memória caso o banco esteja indisponível
-  static final List<Usuario> usuariosPadrao = [
-    Usuario(
-      id: 1,
-      login: 'admin',
-      senha: '123',
-      nome: 'Administrador',
-      perfil: 'Admin',
-    ),
-    Usuario(
-      id: 2,
-      login: 'assistente',
-      senha: '123',
-      nome: 'Assistente Logística',
-      perfil: 'Assistente',
-    ),
-    Usuario(
-      id: 3,
-      login: 'supervisor',
-      senha: '123',
-      nome: 'Supervisor Logística',
-      perfil: 'Supervisor',
-    ),
-    Usuario(
-      id: 4,
-      login: 'almoxarife',
-      senha: '123',
-      nome: 'Almoxarife',
-      perfil: 'Almoxarife',
-    ),
-  ];
+  // // Usuários de contingência em memória caso o banco esteja indisponível
+  // static final List<Usuario> usuariosPadrao = [
+  //   Usuario(
+  //     id: 1,
+  //     login: 'admin',
+  //     senha: '123',
+  //     nome: 'Administrador',
+  //     perfil: 'Admin',
+  //   ),
+  //   Usuario(
+  //     id: 2,
+  //     login: 'assistente',
+  //     senha: '123',
+  //     nome: 'Assistente Logística',
+  //     perfil: 'Assistente',
+  //   ),
+  //   Usuario(
+  //     id: 3,
+  //     login: 'supervisor',
+  //     senha: '123',
+  //     nome: 'Supervisor Logística',
+  //     perfil: 'Supervisor',
+  //   ),
+  //   Usuario(
+  //     id: 4,
+  //     login: 'almoxarife',
+  //     senha: '123',
+  //     nome: 'Almoxarife',
+  //     perfil: 'Almoxarife',
+  //   ),
+  // ];
 
   static Usuario? usuarioLogado;
 
@@ -58,22 +58,22 @@ class AuthService {
       // Ignora erro e tenta contingência
     }
 
-    // 2. Se não encontrou no banco ou o banco falhou, tenta os usuários locais
-    try {
-      return usuariosPadrao.firstWhere(
-        (u) =>
-            u.login.trim().toLowerCase() == login.trim().toLowerCase() &&
-            u.senha == senha.trim(),
-      );
-    } catch (_) {
-      return null;
-    }
+    // // 2. Se não encontrou no banco ou o banco falhou, tenta os usuários locais
+    // try {
+    //   return usuariosPadrao.firstWhere(
+    //     (u) =>
+    //         u.login.trim().toLowerCase() == login.trim().toLowerCase() &&
+    //         u.senha == senha.trim(),
+    //   );
+    // } catch (_) {
+    //   return null;
+    // }
   }
 
   /// Exibe a tela de login simples no terminal
   static Future<Usuario?> realizarLoginTerminal({int maxTentativas = 3}) async {
     // Garante que a tabela exista e esteja populada no banco
-    await _usuarioDao.inicializarTabela();
+    // await _usuarioDao.inicializarTabela();
 
     int tentativas = maxTentativas;
 
@@ -81,9 +81,6 @@ class AuthService {
     print("       SISTEMA DE CADASTRO DE NFs        ");
     print("           ACESSO AO SISTEMA             ");
     print("=========================================");
-    print("Padrão: admin, assistente, almoxarife, supervisor");
-    print("Senha padrão: 123");
-    print("-----------------------------------------");
 
     while (tentativas > 0) {
       stdout.write("Usuário: ");
@@ -170,6 +167,9 @@ class AuthService {
     stdout.write("Senha: ");
     String senha = (stdin.readLineSync() ?? "").trim();
 
+    stdout.write("Senha: ");
+    int? equipe = int.tryParse(stdin.readLineSync().toString());
+
     if (nome.isEmpty || login.isEmpty || senha.isEmpty) {
       print("[!] Erro: Nome, login e senha são obrigatórios!");
       return;
@@ -207,6 +207,7 @@ class AuthService {
       login: login,
       senha: senha,
       perfil: perfil,
+      equipe: equipe,
     );
 
     print("Salvando usuário no banco de dados...");
@@ -225,14 +226,7 @@ class AuthService {
     var lista = await _usuarioDao.buscarTodos();
 
     if (lista.isEmpty) {
-      print("Nenhum usuário encontrado no banco de dados (exibindo padrões locais):");
-      for (var u in usuariosPadrao) {
-        print(u);
-      }
-    } else {
-      for (var u in lista) {
-        print(u);
-      }
+      print("Nenhum usuário encontrado no banco de dados");
     }
   }
 

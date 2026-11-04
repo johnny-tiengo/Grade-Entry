@@ -1,6 +1,8 @@
 import 'package:grade_entry/models/nota_fiscal.dart';
 import 'package:grade_entry/models/sessao.dart';
+import 'package:grade_entry/models/usuario.dart';
 import 'package:grade_entry/repositories/nota_fiscal_services.dart';
+import 'package:grade_entry/repositories/usuario_dao.dart';
 import 'package:grade_entry/views/console_ui.dart';
 
 class _CampoEditavel {
@@ -22,12 +24,13 @@ class MenuNotaFiscal extends ConsoleUI {
   List<OpcaoMenu> get opcoes => [
         if(!sessao.ehAlmoxarife)
         OpcaoMenu('1', 'Cadastrar nova NF', _cadastrar),
+
         OpcaoMenu('2', 'Listar NFs', _listar),
         OpcaoMenu('3', 'Buscar NF pelo número', _buscar),
         if(!sessao.ehAlmoxarife)
         OpcaoMenu('4', 'Editar NF', _editar),
         if(!sessao.ehSupervisor)
-        OpcaoMenu('5', 'Pedir revisão ao supervisor', _pedirRevisao),
+        // OpcaoMenu('5', 'Pedir revisão ao supervisor', _pedirRevisao),
         if (sessao.ehAdmin) OpcaoMenu('6', 'Excluir NF', _excluir),
       ];
 
@@ -46,10 +49,13 @@ class MenuNotaFiscal extends ConsoleUI {
     final recebedor = lerTexto('Recebedor');
     final centroCusto = lerTexto('Centro de Custo');
     // Assistente logado é automaticamente o responsável pela entrada.
-    final assistente =
+    final usuario =
         sessao.ehAssistente ? sessao.usuarioId : lerInt('Quem vai dar a entrada (ID)');
-    final supervisor = lerInt('Supervisor (ID)');
-    final almoxarife = lerInt('Almoxarife (ID)');
+    final equipe = sessao.equipe;
+    
+    
+    // final supervisor = lerInt('Supervisor (ID)');
+    // final almoxarife = lerInt('Almoxarife (ID)');
 
     await service.registrarEntrada(
       numeroNota: numeroNota,
@@ -59,9 +65,8 @@ class MenuNotaFiscal extends ConsoleUI {
       fornecedor: fornecedor,
       recebedor: recebedor,
       centroCusto: centroCusto,
-      assistenteLog: assistente,
-      supervisorLog: supervisor,
-      almoxarifeLog: almoxarife,
+      usuario: usuario,
+      equipe: equipe,
     );
   }
 
@@ -123,12 +128,12 @@ class MenuNotaFiscal extends ConsoleUI {
     print('Campo atualizado!');
   }
 
-  Future<void> _pedirRevisao() async {
-    final nota = await _pedirNota();
-    if (nota == null) return;
-    await service.solicitarRevisao(nota, sessao);
-    print('NF ${nota.numeroNota} enviada para revisão do supervisor.');
-  }
+  // Future<void> _pedirRevisao() async {
+  //   final nota = await _pedirNota();
+  //   if (nota == null) return;
+  //   await service.solicitarRevisao(nota, sessao);
+  //   print('NF ${nota.numeroNota} enviada para revisão do supervisor.');
+  // }
 
   Future<void> _excluir() async {
     final nota = await _pedirNota();

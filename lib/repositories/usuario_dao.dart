@@ -1,47 +1,47 @@
 import 'package:mysql_client/mysql_client.dart';
-
 import './database.dart';
 import '../models/usuario.dart';
 
+
 class UsuarioDao {
   /// Cria a tabela usuario se ela não existir e insere os registros padrão caso vazia
-  Future<void> inicializarTabela() async {
-    MySQLConnection? conn;
-    try {
-      conn = await Database.abrirMySQL();
-      await conn.execute('''
-        CREATE TABLE IF NOT EXISTS usuario (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          nome VARCHAR(100) NOT NULL,
-          login VARCHAR(50) NOT NULL UNIQUE,
-          senha VARCHAR(100) NOT NULL,
-          perfil VARCHAR(50) NOT NULL
-        );
-      ''');
+  // Future<void> inicializarTabela() async {
+  //   MySQLConnection? conn;
+  //   try {
+  //     conn = await Database.abrirMySQL();
+  //     await conn.execute('''
+  //       CREATE TABLE IF NOT EXISTS usuario (
+  //         id INT AUTO_INCREMENT PRIMARY KEY,
+  //         nome VARCHAR(100) NOT NULL,
+  //         login VARCHAR(50) NOT NULL UNIQUE,
+  //         senha VARCHAR(100) NOT NULL,
+  //         perfil VARCHAR(50) NOT NULL
+  //       );
+  //     ''');
 
-      var res = await conn.execute("SELECT COUNT(*) AS total FROM usuario;");
-      int total = 0;
-      if (res.rows.isNotEmpty) {
-        total = int.tryParse(res.rows.first.colByName("total").toString()) ?? 0;
-      }
+  //     var res = await conn.execute("SELECT COUNT(*) AS total FROM usuario;");
+  //     int total = 0;
+  //     if (res.rows.isNotEmpty) {
+  //       total = int.tryParse(res.rows.first.colByName("total").toString()) ?? 0;
+  //     }
 
-      if (total == 0) {
-        await conn.execute('''
-          INSERT INTO usuario (nome, login, senha, perfil) VALUES
-          ('Administrador', 'admin', '123', 'Admin'),
-          ('Assistente Logística', 'assistente', '123', 'Assistente'),
-          ('Supervisor Logística', 'supervisor', '123', 'Supervisor'),
-          ('Almoxarife', 'almoxarife', '123', 'Almoxarife');
-        ''');
-      }
-    } catch (e) {
-      // Se não conseguir conectar ao banco, continua com aviso
-    } finally {
-      if (conn != null && conn.connected) {
-        await conn.close();
-      }
-    }
-  }
+  //     if (total == 0) {
+  //       await conn.execute('''
+  //         INSERT INTO usuario (nome, login, senha, perfil) VALUES
+  //         ('Administrador', 'admin', '123', 'Admin'),
+  //         ('Assistente Logística', 'assistente', '123', 'Assistente'),
+  //         ('Supervisor Logística', 'supervisor', '123', 'Supervisor'),
+  //         ('Almoxarife', 'almoxarife', '123', 'Almoxarife');
+  //       ''');
+  //     }
+  //   } catch (e) {
+  //     // Se não conseguir conectar ao banco, continua com aviso
+  //   } finally {
+  //     if (conn != null && conn.connected) {
+  //       await conn.close();
+  //     }
+  //   }
+  // }
 
   /// Autentica um usuário no banco de dados MySQL
   Future<Usuario?> autenticar(String login, String senha) async {
@@ -58,7 +58,9 @@ class UsuarioDao {
 
       if (res.rows.isNotEmpty) {
         var row = res.rows.first;
+
         return Usuario(
+          equipe: int.tryParse(row.colByName("equipe").toString()),
           id: int.tryParse(row.colByName("id").toString()),
           nome: row.colByName("nome").toString(),
           login: row.colByName("login").toString(),
@@ -117,6 +119,7 @@ class UsuarioDao {
             login: row.colByName("login").toString(),
             senha: row.colByName("senha").toString(),
             perfil: row.colByName("perfil").toString(),
+            equipe: int.tryParse(row.colByName("equipe").toString()),
           ),
         );
       }
@@ -143,11 +146,11 @@ class UsuarioDao {
       if (res.rows.isNotEmpty) {
         var row = res.rows.first;
         return Usuario(
-          id: int.tryParse(row.colByName("id").toString()),
           nome: row.colByName("nome").toString(),
           login: row.colByName("login").toString(),
           senha: row.colByName("senha").toString(),
           perfil: row.colByName("perfil").toString(),
+          equipe: int.tryParse(row.colByName("equipe").toString()),
         );
       }
     } catch (e) {

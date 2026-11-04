@@ -24,9 +24,6 @@ class NotaFiscalDao {
       fornecedor: row.colByName("fornecedor") ?? '',
       recebedor: row.colByName("recebedor") ?? '',
       centroCusto: row.colByName("centroCusto") ?? '',
-      assistenteLog: inteiro("assistenteLog"),
-      supervisorLog: inteiro("supervisorLog"),
-      almoxarifeLog: inteiro("almoxarifeLog"),
       dataFinalizacao: data("dataFinalizacao"),
     );
   }
@@ -54,8 +51,8 @@ class NotaFiscalDao {
     try {
       conn = await Database.abrirMySQL();
       var sql =
-          "INSERT INTO notafiscal (numeroNota, chaveAcesso, numeroPedido, dataRecebimento, fornecedor, centroCusto, assistenteLog , supervisorLog, almoxarifeLog, dataFinalizacao, dataCadastro, recebedor, statusNota) "
-          "VALUES (:numeroNota, :chaveAcesso, :numeroPedido, :dataRecebimento, :fornecedor, :centroCusto, :assistenteLog,:supervisorLog,:almoxarifeLog,:dataFinalizacao, :dataCadastro, :recebedor, :statusNota);";
+          "INSERT INTO notafiscal (numeroNota, chaveAcesso, numeroPedido, dataRecebimento, fornecedor, centroCusto, equipe, usuario, dataFinalizacao, dataCadastro, recebedor, statusNota) "
+          "VALUES (:numeroNota, :chaveAcesso, :numeroPedido, :dataRecebimento, :fornecedor, :centroCusto,:equipe , :usuario,:dataFinalizacao, :dataCadastro, :recebedor, :statusNota);";
       await conn.execute(sql, {
         "numeroNota": nfAdd.numeroNota,
         "chaveAcesso": nfAdd.chaveAcesso,
@@ -65,11 +62,10 @@ class NotaFiscalDao {
         "fornecedor": nfAdd.fornecedor,
         "recebedor": nfAdd.recebedor,
         "centroCusto": nfAdd.centroCusto,
-        "assistenteLog": nfAdd.assistenteLog,
-        "supervisorLog": nfAdd.supervisorLog,
-        "almoxarifeLog": nfAdd.almoxarifeLog,
         "dataFinalizacao": nfAdd.dataFinalizacao,
         "statusNota": nfAdd.statusNota,
+        "usuario": nfAdd.usuario,
+        "equipe": nfAdd.equipe,
       });
       print("NF salva com sucesso!");
     } catch (e) {
