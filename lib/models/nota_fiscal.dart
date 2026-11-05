@@ -37,10 +37,10 @@ class NotaFiscal {
   }
 
   // Padrão brasileiro (24h)
-  final DateFormat formatoBr = DateFormat('dd/MM/yyyy HH:mm:ss');
+  final DateFormat _formatoBr = DateFormat('dd/MM/yyyy HH:mm');
 
   @override
   String toString() {
-    return "[$id] Nº Nota: $numeroNota | Recebimento: ${formatoBr.format(dataRecebimento)} | Recebedor: $recebedor | Status: ${statusNota!.toUpperCase()} |";
+    return "[$id] Nº Nota: $numeroNota | Recebimento: ${_formatoBr.format(dataRecebimento)} | Recebedor: $recebedor | Status: ${statusNota!.toUpperCase()} |";
   }
 }

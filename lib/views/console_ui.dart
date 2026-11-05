@@ -61,10 +61,10 @@ abstract class ConsoleUI {
 
   /// Lê data e hora separadas (como no main original) e devolve DateTime.
   DateTime lerDataHora(String rotulo) {
-    final formato = DateFormat('dd/MM/yyyy HH:mm:ss');
+    final formato = DateFormat('dd/MM/yyyy HH:mm');
     while (true) {
       final data = lerTexto('$rotulo - data (dd/MM/aaaa)');
-      final hora = lerTexto('$rotulo - hora (HH:mm:ss)');
+      final hora = lerTexto('$rotulo - hora (HH:mm)');
       try {
         return formato.parseStrict('$data $hora');
       } on FormatException {
