@@ -75,4 +75,11 @@ abstract class ConsoleUI {
 
   bool confirmar(String pergunta) =>
       lerTexto('$pergunta [1]SIM [2]NÃO') == '1';
+
+void clearTerminal() {
+  // \x1B[2J = limpa a tela visível
+  // \x1B[0;0H = volta o cursor para linha 1, coluna 1
+  // \x1B[3J = apaga todo o buffer de rolagem (scrollback)
+  stdout.write('\x1B[2J\x1B[0;0H\x1B[3J');
+}
 }

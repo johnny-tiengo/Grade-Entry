@@ -41,10 +41,11 @@ class MenuNotaFiscal extends ConsoleUI {
       print('Operação cancelada.');
       return;
     }
+    clearTerminal();
     final numeroNota = lerInt('Número da Nota');
     final numeroPedido = lerInt('Número do Pedido');
     final chave = lerTexto('Chave de Acesso');
-    final data = lerDataHora('Recebimento');
+    final data = lerDataHora('Recebimento'); 
     final fornecedor = lerTexto('Fornecedor');
     final recebedor = lerTexto('Recebedor');
     final centroCusto = lerTexto('Centro de Custo');
@@ -71,6 +72,7 @@ class MenuNotaFiscal extends ConsoleUI {
   }
 
   Future<void> _listar() async {
+    clearTerminal();
     print('\n--- LISTA DE NOTAS FISCAIS ---');
     final notas = await service.listar();
     if (notas.isEmpty) {

@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import '../models/usuario.dart';
 import '../repositories/usuario_dao.dart';
 
@@ -11,7 +10,6 @@ import '../repositories/usuario_dao.dart';
 
 class AuthService {
   static final UsuarioDao _usuarioDao = UsuarioDao();
-
   // // Usuários de contingência em memória caso o banco esteja indisponível
   // static final List<Usuario> usuariosPadrao = [
   //   Usuario(
@@ -45,7 +43,6 @@ class AuthService {
   // ];
 
   static Usuario? usuarioLogado;
-
   /// Autentica o usuário pelo banco de dados (com contingência em memória)
   static Future<Usuario?> autenticar(String login, String senha) async {
     // 1. Tenta autenticar pelo banco de dados MySQL
@@ -94,7 +91,7 @@ class AuthService {
       if (usuario != null) {
         usuarioLogado = usuario;
         print("\n[OK] Login realizado com sucesso!");
-        print("Bem-vindo(a), ${usuario.nome} (${usuario.perfil})!\n");
+        print("Bem-vindo(a), ${usuario.nome}!\n");
         return usuario;
       } else {
         tentativas--;
