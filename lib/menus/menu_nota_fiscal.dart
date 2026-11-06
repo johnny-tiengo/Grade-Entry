@@ -1,9 +1,12 @@
+import 'package:grade_entry/models/centrocusto.dart';
 import 'package:grade_entry/models/nota_fiscal.dart';
 import 'package:grade_entry/models/sessao.dart';
 import 'package:grade_entry/models/usuario.dart';
 import 'package:grade_entry/repositories/nota_fiscal_services.dart';
 import 'package:grade_entry/repositories/usuario_dao.dart';
 import 'package:grade_entry/views/console_ui.dart';
+import '../repositories/centrocusto_dao.dart';
+import '../repositories/fornecedor_dao.dart';
 
 class _CampoEditavel {
   final String rotulo;
@@ -35,6 +38,9 @@ class MenuNotaFiscal extends ConsoleUI {
       ];
 
   Future<void> _cadastrar() async {
+    final ccDao = CentrocustoDao();
+    final fDao = FornecedorDao();
+
     print('\n--- NOVO CADASTRO ---');
     final escolha = lerTexto('Deseja continuar? [1] Sim [2] Não');
     if (escolha != '1') {
@@ -46,17 +52,13 @@ class MenuNotaFiscal extends ConsoleUI {
     final numeroPedido = lerInt('Número do Pedido');
     final chave = lerTexto('Chave de Acesso');
     final data = lerDataHora('Recebimento'); 
+    await fDao.buscarTodos(); //EXECUTA MAS N EXIBE
     final fornecedor = lerTexto('Fornecedor');
     final recebedor = lerTexto('Recebedor');
+    await ccDao.buscarTodos(); //EXECUTA MAS N EXIBE
     final centroCusto = lerTexto('Centro de Custo');
-    // Assistente logado é automaticamente o responsável pela entrada.
-    final usuario =
-        sessao.ehAssistente ? sessao.usuarioId : lerInt('Quem vai dar a entrada (ID)');
+    final usuario = sessao.usuarioId;
     final equipe = sessao.equipe;
-    
-    
-    // final supervisor = lerInt('Supervisor (ID)');
-    // final almoxarife = lerInt('Almoxarife (ID)');
 
     await service.registrarEntrada(
       numeroNota: numeroNota,

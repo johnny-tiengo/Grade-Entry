@@ -3,7 +3,6 @@
 // buscarPorNumero(String numero) -> SELECT ... WHERE numero = ...
 // deletar(int id) -> DELETE FROM ...
 import 'package:mysql_client/mysql_client.dart';
-
 import 'package:grade_entry/repositories/database.dart';
 import 'package:grade_entry/models/nota_fiscal.dart';
 
@@ -86,9 +85,13 @@ class NotaFiscalDao {
     return r.isEmpty ? null : r.first;
   }
 
+  // ------------------------------------------------------------------------------------
   // NOVO: usado pelo menu do supervisor (status = 'revisao')
+
+  //A BUSCA DEVE SER FEITA NA TABELA REVISÃO
   Future<List<NotaFiscal>> buscarPorStatus(String status) => _consultar(
       "SELECT * FROM notafiscal WHERE statusNota = :s;", {"s": status});
+  //-------------------------------------------------------------------------------------
 
   // 3. ATUALIZAR (igual ao original)
   Future<void> atualizar(int idAtt, String colunaDB, attCampo) async {
