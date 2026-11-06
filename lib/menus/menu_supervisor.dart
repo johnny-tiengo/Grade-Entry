@@ -13,31 +13,39 @@ class MenuSupervisor extends ConsoleUI {
   @override
   List<OpcaoMenu> get opcoes => [
         OpcaoMenu('1', 'Ver NFs em revisão', _listar),
-        OpcaoMenu('2', 'Aprovar NF (fechar)', () => _decidir(aprovar: true)),
+        OpcaoMenu('2', 'Aprovar NF (marcar como revisada)', () => _decidir(aprovar: true)),
         OpcaoMenu('3', 'Devolver NF (reabrir)', () => _decidir(aprovar: false)),
       ];
 
   Future<void> _listar() async {
-    final notas = await service.listarEmRevisao();
-    if (notas.isEmpty) {
-      print('Nenhuma NF aguardando revisão.');
+    clearTerminal();
+    print('\n--- REVISÕES CADASTRADAS NO BANCO ---');
+    final revisoes = await service.listarRevisoes(sessao);
+    if (revisoes.isEmpty) {
+      print('Nenhuma NF aguardando revisão na tabela de revisão.');
       return;
     }
-    notas.forEach(print);
+    revisoes.forEach(print);
   }
 
   Future<void> _decidir({required bool aprovar}) async {
-     final escolha = lerTexto('Deseja continuar? [1] Sim [2] Não');
-    if (escolha != '1') {
+    if (!confirmar()) {
       print('Operação cancelada.');
       return;
     }
-    final nota = await service.buscarPorNumero(lerInt('Número da Nota'));
+    final numeroOuId = lerInt('ID ou Número da Nota');
+    var nota = await service.buscarPorId(numeroOuId, sessao);
+    nota ??= await service.buscarPorNumero(numeroOuId, sessao);
+
     if (nota == null) {
       print('Nota não encontrada.');
       return;
     }
     await service.decidirRevisao(nota, sessao, aprovar: aprovar);
-    print(aprovar ? 'NF aprovada e fechada.' : 'NF devolvida (status aberto).');
+    print(
+      aprovar
+          ? 'NF aprovada na revisão (status alterado para "revisada").'
+          : 'NF devolvida (status alterado para "aberto").',
+    );
   }
 }

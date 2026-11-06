@@ -9,14 +9,23 @@ class OpcaoMenu {
   const OpcaoMenu(this.codigo, this.texto, this.acao);
 }
 
+/// Representa um campo de uma tabela que pode ser editado pelo menu.
+class CampoEditavel {
+  final String rotulo;
+  final String coluna;
+  final Object Function() ler;
+  const CampoEditavel(this.rotulo, this.coluna, this.ler);
+}
+
 /// Base de todos os menus: mostra as opções, lê a escolha, valida a entrada
-/// básica e repassa para o Service. Cada menu só declara título e opções.
+/// básica e repassa para o Service/DAO. Cada menu só declara título e opções.
 abstract class ConsoleUI {
   String get titulo;
   List<OpcaoMenu> get opcoes;
   String get textoSaida => 'Voltar';
 
   Future<void> executar() async {
+    clearTerminal();
     while (true) {
       print('\n--- $titulo ---');
       for (final o in opcoes) {
@@ -59,6 +68,12 @@ abstract class ConsoleUI {
     }
   }
 
+  int? lerIntOpcional(String rotulo) {
+    final texto = lerTexto(rotulo, obrigatorio: false);
+    if (texto.isEmpty) return null;
+    return int.tryParse(texto);
+  }
+
   /// Lê data e hora separadas (como no main original) e devolve DateTime.
   DateTime lerDataHora(String rotulo) {
     final formato = DateFormat('dd/MM/yyyy HH:mm');
@@ -73,13 +88,26 @@ abstract class ConsoleUI {
     }
   }
 
-  bool confirmar(String pergunta) =>
-      lerTexto('$pergunta [1]SIM [2]NÃO') == '1';
+  bool confirmar([String pergunta = 'Deseja continuar?']) =>
+      lerTexto('$pergunta [1] SIM [2] NÃO') == '1';
 
-void clearTerminal() {
-  // \x1B[2J = limpa a tela visível
-  // \x1B[0;0H = volta o cursor para linha 1, coluna 1
-  // \x1B[3J = apaga todo o buffer de rolagem (scrollback)
-  stdout.write('\x1B[2J\x1B[0;0H\x1B[3J');
-}
+  /// Exibe uma lista numerada de [CampoEditavel] e retorna o campo escolhido.
+  CampoEditavel? escolherCampoEditavel(List<CampoEditavel> campos) {
+    for (var i = 0; i < campos.length; i++) {
+      print('${i + 1} - ${campos[i].rotulo}');
+    }
+    final n = lerInt('QUAL CAMPO DESEJA ALTERAR');
+    if (n < 1 || n > campos.length) {
+      print('Opção inválida!');
+      return null;
+    }
+    return campos[n - 1];
+  }
+
+  void clearTerminal() {
+    // \x1B[2J = limpa a tela visível
+    // \x1B[0;0H = volta o cursor para linha 1, coluna 1
+    // \x1B[3J = apaga todo o buffer de rolagem (scrollback)
+    stdout.write('\x1B[2J\x1B[0;0H\x1B[3J');
+  }
 }

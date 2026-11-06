@@ -1,121 +1,146 @@
-// inserir(NotaFiscal nota) -> Executa o INSERT INTO...
-// listarTodos() -> Executa o SELECT * FROM... e retorna uma lista de NotaFiscal.
-// buscarPorNumero(String numero) -> SELECT ... WHERE numero = ...
-// deletar(int id) -> DELETE FROM ...
 import 'package:mysql_client/mysql_client.dart';
-
-import 'package:grade_entry/repositories/database.dart';
 import 'package:grade_entry/models/nota_fiscal.dart';
+import 'package:grade_entry/repositories/base_dao.dart';
 
-class NotaFiscalDao {
-  // Converte uma linha do banco em NotaFiscal (usado por todas as consultas)
-  NotaFiscal _mapear(ResultSetRow row) {
-    int? inteiro(String col) => int.tryParse(row.colByName(col) ?? '');
-    DateTime? data(String col) => DateTime.tryParse(row.colByName(col) ?? '');
+class NotaFiscalDao extends BaseDao<NotaFiscal> {
+  static const int limitePadraoListagem = 20;
 
+  @override
+  String get tabela => 'notafiscal';
+
+  @override
+  String get colunaId => 'idnotaFiscal';
+
+  @override
+  NotaFiscal mapear(ResultSetRow row) {
     return NotaFiscal(
-      id: inteiro("idnotaFiscal"),
-      numeroNota: int.parse(row.colByName("numeroNota")!),
-      numeroPedido: int.parse(row.colByName("numeroPedido")!),
-      chaveAcesso: row.colByName("chaveAcesso") ?? '',
-      statusNota: row.colByName("statusNota"),
-      dataRecebimento: DateTime.parse(row.colByName("dataRecebimento")!),
-      dataCadastro: data("dataCadastro"),
-      fornecedor: row.colByName("fornecedor") ?? '',
-      recebedor: row.colByName("recebedor") ?? '',
-      centroCusto: row.colByName("centroCusto") ?? '',
-      dataFinalizacao: data("dataFinalizacao"),
+      id: lerInt(row, 'idnotaFiscal'),
+      numeroNota: int.parse(row.colByName('numeroNota')!),
+      numeroPedido: int.parse(row.colByName('numeroPedido')!),
+      chaveAcesso: lerTexto(row, 'chaveAcesso'),
+      statusNota: row.colByName('statusNota'),
+      dataRecebimento: DateTime.parse(row.colByName('dataRecebimento')!),
+      dataCadastro: lerData(row, 'dataCadastro'),
+      fornecedor: lerTexto(row, 'fornecedor'),
+      recebedor: lerTexto(row, 'recebedor'),
+      centroCusto: lerTexto(row, 'centroCusto'),
+      dataFinalizacao: lerData(row, 'dataFinalizacao'),
+      usuario: lerInt(row, 'usuario'),
+      equipe: lerInt(row, 'equipe'),
     );
   }
 
-  Future<List<NotaFiscal>> _consultar(String sql, [Map<String, dynamic>? params]) async {
-    final lista = <NotaFiscal>[];
-    MySQLConnection? conn;
-    try {
-      conn = await Database.abrirMySQL();
-      final result = await conn.execute(sql, params);
-      for (final row in result.rows) {
-        lista.add(_mapear(row));
+  @override
+  Map<String, dynamic> paraMapa(NotaFiscal nfAdd) => {
+        'numeroNota': nfAdd.numeroNota,
+        'chaveAcesso': nfAdd.chaveAcesso,
+        'numeroPedido': nfAdd.numeroPedido,
+        'dataRecebimento': nfAdd.dataRecebimento,
+        'dataCadastro': nfAdd.dataCadastro,
+        'fornecedor': nfAdd.fornecedor,
+        'recebedor': nfAdd.recebedor,
+        'centroCusto': nfAdd.centroCusto,
+        'dataFinalizacao': nfAdd.dataFinalizacao,
+        'statusNota': nfAdd.statusNota,
+        'usuario': nfAdd.usuario,
+        'equipe': nfAdd.equipe,
+      };
+
+  /// Lista as NFs da equipe priorizando as abertas (sem limite).
+  /// Se houver menos de 20 abertas, completa com as fechadas/demais até 20.
+  /// Se houver 20 ou mais abertas, retorna todas as abertas somente.
+  Future<List<NotaFiscal>> listarPorEquipeComPrioridade(int? equipe) async {
+    final filtroEquipe = equipe != null ? 'WHERE equipe = :equipe' : '';
+    final params = equipe != null ? {'equipe': equipe} : null;
+
+    final todasDaEquipe = await consultar(
+      'SELECT * FROM $tabela $filtroEquipe ORDER BY $colunaId;',
+      params,
+    );
+
+    final abertas = <NotaFiscal>[];
+    final demais = <NotaFiscal>[];
+
+    for (final nf in todasDaEquipe) {
+      if ((nf.statusNota ?? '').toLowerCase() == 'aberto') {
+        abertas.add(nf);
+      } else {
+        demais.add(nf);
       }
-    } catch (e) {
-      print("Erro ao buscar NFs: $e");
-    } finally {
-      if (conn != null && conn.connected) await conn.close();
     }
-    return lista;
+
+    if (abertas.length >= limitePadraoListagem) {
+      return abertas;
+    }
+
+    final faltam = limitePadraoListagem - abertas.length;
+    return [
+      ...abertas,
+      ...demais.take(faltam),
+    ];
   }
 
-  // 1. INSERIR NF (igual ao original)
-  Future<void> salvar(NotaFiscal nfAdd) async {
-    MySQLConnection? conn;
-    try {
-      conn = await Database.abrirMySQL();
-      var sql =
-          "INSERT INTO notafiscal (numeroNota, chaveAcesso, numeroPedido, dataRecebimento, fornecedor, centroCusto, equipe, usuario, dataFinalizacao, dataCadastro, recebedor, statusNota) "
-          "VALUES (:numeroNota, :chaveAcesso, :numeroPedido, :dataRecebimento, :fornecedor, :centroCusto,:equipe , :usuario,:dataFinalizacao, :dataCadastro, :recebedor, :statusNota);";
-      await conn.execute(sql, {
-        "numeroNota": nfAdd.numeroNota,
-        "chaveAcesso": nfAdd.chaveAcesso,
-        "numeroPedido": nfAdd.numeroPedido,
-        "dataRecebimento": nfAdd.dataRecebimento,
-        "dataCadastro": nfAdd.dataCadastro,
-        "fornecedor": nfAdd.fornecedor,
-        "recebedor": nfAdd.recebedor,
-        "centroCusto": nfAdd.centroCusto,
-        "dataFinalizacao": nfAdd.dataFinalizacao,
-        "statusNota": nfAdd.statusNota,
-        "usuario": nfAdd.usuario,
-        "equipe": nfAdd.equipe,
-      });
-      print("NF salva com sucesso!");
-    } catch (e) {
-      print("Erro ao salvar NF: $e");
-    } finally {
-      if (conn != null && conn.connected) await conn.close();
+  /// Busca pelo número da Nota Fiscal (filtrando pela equipe se informada).
+  Future<NotaFiscal?> buscarPorNumero(int numero, {int? equipe}) async {
+    if (equipe != null) {
+      final r = await consultar(
+        'SELECT * FROM $tabela WHERE numeroNota = :n AND equipe = :equipe LIMIT 1;',
+        {'n': numero, 'equipe': equipe},
+      );
+      return r.isEmpty ? null : r.first;
     }
-  }
-
-  // 2. LISTAR TODAS
-  Future<List<NotaFiscal>> buscarTodos() =>
-      _consultar("SELECT * FROM notafiscal;");
-
-  // NOVO: busca direto no banco pelo número da nota
-  Future<NotaFiscal?> buscarPorNumero(int numero) async {
-    final r = await _consultar(
-        "SELECT * FROM notafiscal WHERE numeroNota = :n LIMIT 1;", {"n": numero});
+    final r = await consultar(
+      'SELECT * FROM $tabela WHERE numeroNota = :n LIMIT 1;',
+      {'n': numero},
+    );
     return r.isEmpty ? null : r.first;
   }
 
-  // NOVO: usado pelo menu do supervisor (status = 'revisao')
-  Future<List<NotaFiscal>> buscarPorStatus(String status) => _consultar(
-      "SELECT * FROM notafiscal WHERE statusNota = :s;", {"s": status});
-
-  // 3. ATUALIZAR (igual ao original)
-  Future<void> atualizar(int idAtt, String colunaDB, attCampo) async {
-    MySQLConnection? conn;
-    try {
-      conn = await Database.abrirMySQL();
-      var sql =
-          "UPDATE notafiscal SET $colunaDB = :attCampo WHERE idnotaFiscal = :idAtt";
-      await conn.execute(sql, {"attCampo": attCampo, "idAtt": idAtt});
-    } catch (e) {
-      print("Erro ao tentar atualizar a NF: $e");
-    } finally {
-      if (conn != null && conn.connected) await conn.close();
+  /// Busca pelo ID da Nota Fiscal (filtrando pela equipe se informada).
+  Future<NotaFiscal?> buscarPorIdDaEquipe(int id, {int? equipe}) async {
+    if (equipe != null) {
+      final r = await consultar(
+        'SELECT * FROM $tabela WHERE $colunaId = :id AND equipe = :equipe LIMIT 1;',
+        {'id': id, 'equipe': equipe},
+      );
+      return r.isEmpty ? null : r.first;
     }
+    return buscarPorId(id);
   }
 
-  // 4. APAGAR (a confirmação [1]SIM/[2]NÃO agora é feita no menu, não no DAO)
-  Future<void> apagarNota(int idDel) async {
-    MySQLConnection? conn;
-    try {
-      conn = await Database.abrirMySQL();
-      await conn.execute(
-          "DELETE FROM notafiscal WHERE idnotafiscal = :idDel", {"idDel": idDel});
-    } catch (e) {
-      print("Erro ao tentar apagar a NF: $e");
-    } finally {
-      if (conn != null && conn.connected) await conn.close();
+  /// Busca específica por status e opcionalmente por equipe.
+  Future<List<NotaFiscal>> buscarPorStatus(String status, {int? equipe}) {
+    if (equipe != null) {
+      return consultar(
+        'SELECT * FROM $tabela WHERE statusNota = :s AND equipe = :equipe ORDER BY $colunaId;',
+        {'s': status, 'equipe': equipe},
+      );
     }
+    return consultar(
+      'SELECT * FROM $tabela WHERE statusNota = :s ORDER BY $colunaId;',
+      {'s': status},
+    );
   }
+
+  /// Busca NFs da equipe que estejam em qualquer um dos status informados.
+  Future<List<NotaFiscal>> buscarPorListaDeStatus(
+    List<String> listaStatus, {
+    int? equipe,
+  }) async {
+    final filtroEquipe = equipe != null ? 'WHERE equipe = :equipe' : '';
+    final params = equipe != null ? {'equipe': equipe} : null;
+    final todas = await consultar(
+      'SELECT * FROM $tabela $filtroEquipe ORDER BY $colunaId;',
+      params,
+    );
+    final statusNormalizados =
+        listaStatus.map((s) => s.toLowerCase()).toSet();
+    return todas
+        .where((nf) =>
+            statusNormalizados.contains((nf.statusNota ?? '').toLowerCase()))
+        .toList();
+  }
+
+  /// Mantém o nome `apagarNota` delegando para `apagar` da classe pai [BaseDao].
+  Future<bool> apagarNota(int idDel) => apagar(idDel);
 }
