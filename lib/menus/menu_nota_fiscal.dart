@@ -5,6 +5,7 @@ import 'package:grade_entry/models/usuario.dart';
 import 'package:grade_entry/repositories/nota_fiscal_services.dart';
 import 'package:grade_entry/repositories/usuario_dao.dart';
 import 'package:grade_entry/views/console_ui.dart';
+
 import '../repositories/centrocusto_dao.dart';
 import '../repositories/fornecedor_dao.dart';
 
@@ -25,17 +26,15 @@ class MenuNotaFiscal extends ConsoleUI {
 
   @override
   List<OpcaoMenu> get opcoes => [
-        if(!sessao.ehAlmoxarife)
-        OpcaoMenu('1', 'Cadastrar nova NF', _cadastrar),
+    if (!sessao.ehAlmoxarife) OpcaoMenu('1', 'Cadastrar nova NF', _cadastrar),
 
-        OpcaoMenu('2', 'Listar NFs', _listar),
-        OpcaoMenu('3', 'Buscar NF pelo número', _buscar),
-        if(!sessao.ehAlmoxarife)
-        OpcaoMenu('4', 'Editar NF', _editar),
-        if(!sessao.ehSupervisor)
-        // OpcaoMenu('5', 'Pedir revisão ao supervisor', _pedirRevisao),
-        if (sessao.ehAdmin) OpcaoMenu('6', 'Excluir NF', _excluir),
-      ];
+    OpcaoMenu('2', 'Listar NFs', _listar),
+    OpcaoMenu('3', 'Buscar NF pelo número', _buscar),
+    if (!sessao.ehAlmoxarife) OpcaoMenu('4', 'Editar NF', _editar),
+    if (!sessao.ehSupervisor)
+      // OpcaoMenu('5', 'Pedir revisão ao supervisor', _pedirRevisao),
+      if (sessao.ehAdmin) OpcaoMenu('6', 'Excluir NF', _excluir),
+  ];
 
   Future<void> _cadastrar() async {
     final ccDao = CentrocustoDao();
@@ -51,11 +50,19 @@ class MenuNotaFiscal extends ConsoleUI {
     final numeroNota = lerInt('Número da Nota');
     final numeroPedido = lerInt('Número do Pedido');
     final chave = lerTexto('Chave de Acesso');
-    final data = lerDataHora('Recebimento'); 
-    await fDao.buscarTodos(); //EXECUTA MAS N EXIBE
+    final data = lerDataHora('Recebimento');
+
+    final fornecedores = await fDao.buscarTodos();
+    print('Fornecedores disponíveis:');
+    fornecedores.forEach(print);
+
     final fornecedor = lerTexto('Fornecedor');
     final recebedor = lerTexto('Recebedor');
-    await ccDao.buscarTodos(); //EXECUTA MAS N EXIBE
+
+    final centroDCusto = await ccDao.buscarTodos();
+    print("Centro de Custo:");
+    centroDCusto.forEach(print);
+
     final centroCusto = lerTexto('Centro de Custo');
     final usuario = sessao.usuarioId;
     final equipe = sessao.equipe;
@@ -111,13 +118,41 @@ class MenuNotaFiscal extends ConsoleUI {
     print(nota);
 
     final campos = <_CampoEditavel>[
-      _CampoEditavel('NUMERO DA NOTA', 'numeroNota', () => lerInt('Novo número da nota')),
-      _CampoEditavel('DATA DE RECEBIMENTO', 'dataRecebimento', () => lerDataHora('Novo recebimento')),
-      _CampoEditavel('RECEBEDOR', 'recebedor', () => lerTexto('Novo recebedor')),
-      _CampoEditavel('NUMERO DO PEDIDO', 'numeroPedido', () => lerInt('Novo número do pedido')),
-      _CampoEditavel('CHAVE DE ACESSO', 'chaveAcesso', () => lerTexto('Nova chave de acesso')),
-      _CampoEditavel('FORNECEDOR', 'fornecedor', () => lerTexto('Novo fornecedor')),
-      _CampoEditavel('CENTRO DE CUSTO', 'centroCusto', () => lerTexto('Novo centro de custo')),
+      _CampoEditavel(
+        'NUMERO DA NOTA',
+        'numeroNota',
+        () => lerInt('Novo número da nota'),
+      ),
+      _CampoEditavel(
+        'DATA DE RECEBIMENTO',
+        'dataRecebimento',
+        () => lerDataHora('Novo recebimento'),
+      ),
+      _CampoEditavel(
+        'RECEBEDOR',
+        'recebedor',
+        () => lerTexto('Novo recebedor'),
+      ),
+      _CampoEditavel(
+        'NUMERO DO PEDIDO',
+        'numeroPedido',
+        () => lerInt('Novo número do pedido'),
+      ),
+      _CampoEditavel(
+        'CHAVE DE ACESSO',
+        'chaveAcesso',
+        () => lerTexto('Nova chave de acesso'),
+      ),
+      _CampoEditavel(
+        'FORNECEDOR',
+        'fornecedor',
+        () => lerTexto('Novo fornecedor'),
+      ),
+      _CampoEditavel(
+        'CENTRO DE CUSTO',
+        'centroCusto',
+        () => lerTexto('Novo centro de custo'),
+      ),
     ];
     for (var i = 0; i < campos.length; i++) {
       print('${i + 1} - ${campos[i].rotulo}');

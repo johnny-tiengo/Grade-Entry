@@ -40,7 +40,9 @@ class FornecedorDao {
       for (var row in result.rows) {
         lista.add(
           Fornecedor(
-            idfornecedor: int.tryParse(row.colByName("idfornecedor").toString()),
+            idfornecedor: int.tryParse(
+              row.colByName("idfornecedor").toString(),
+            ),
             razaoSocial: row.colByName("razaoSocial").toString(),
             cnpj: row.colByName("cnpj").toString(),
             endereco: row.colByName("endereco").toString(),
