@@ -1,6 +1,7 @@
 import 'package:mysql_client/mysql_client.dart';
 import './database.dart';
 import '../models/usuario.dart';
+import '../services/hash_service.dart';
 
 
 class UsuarioDao {
@@ -43,31 +44,58 @@ class UsuarioDao {
   //   }
   // }
 
-  /// Autentica um usuário no banco de dados MySQL
+  /// Autentica um usuário no banco de dados MySQL.
+  /// Busca apenas pelo login e confere a senha em Dart com bcrypt
+  /// (o salt aleatório impede comparar o hash direto no SQL).
+  /// Senhas antigas (texto puro ou SHA-256) são convertidas para bcrypt
+  /// automaticamente no primeiro login válido.
   Future<Usuario?> autenticar(String login, String senha) async {
     MySQLConnection? conn;
     try {
       conn = await Database.abrirMySQL();
+
       var res = await conn.execute(
-        "SELECT * FROM usuario WHERE LOWER(login) = :login AND senha = :senha LIMIT 1;",
-        {
-          "login": login.trim().toLowerCase(),
-          "senha": senha.trim(),
-        },
+        "SELECT * FROM usuario WHERE LOWER(login) = :login LIMIT 1;",
+        {"login": login.trim().toLowerCase()},
       );
 
-      if (res.rows.isNotEmpty) {
-        var row = res.rows.first;
+      if (res.rows.isEmpty) return null;
 
-        return Usuario(
-          equipe: int.tryParse(row.colByName("equipe").toString()),
-          id: int.tryParse(row.colByName("id").toString()),
-          nome: row.colByName("nome").toString(),
-          login: row.colByName("login").toString(),
-          senha: row.colByName("senha").toString(),
-          perfil: row.colByName("perfil").toString(),
+      var row = res.rows.first;
+      final senhaSalva = row.colByName("senha").toString();
+      final id = int.tryParse(row.colByName("id").toString());
+
+      bool senhaCorreta = HashService.verificar(senha, senhaSalva);
+      bool precisaMigrar = false;
+
+      if (!senhaCorreta && !HashService.ehBcrypt(senhaSalva)) {
+        if (HashService.ehSha256Legado(senhaSalva)) {
+          // Formato antigo: SHA-256 sem salt
+          senhaCorreta = HashService.verificarSha256Legado(senha, senhaSalva);
+        } else {
+          // Formato legado: senha salva em texto puro
+          senhaCorreta = senhaSalva == senha.trim();
+        }
+        precisaMigrar = senhaCorreta;
+      }
+
+      if (!senhaCorreta) return null;
+
+      if (precisaMigrar && id != null) {
+        await conn.execute(
+          "UPDATE usuario SET senha = :hash WHERE id = :id;",
+          {"hash": HashService.gerarHash(senha.trim()), "id": id},
         );
       }
+
+      return Usuario(
+        equipe: int.tryParse(row.colByName("equipe").toString()),
+        id: id,
+        nome: row.colByName("nome").toString(),
+        login: row.colByName("login").toString(),
+        senha: '', // o hash não precisa circular pelo sistema após o login
+        perfil: row.colByName("perfil").toString(),
+      );
     } catch (e) {
       print("Aviso: Falha ao consultar usuário no banco: $e");
     } finally {
@@ -78,7 +106,8 @@ class UsuarioDao {
     return null;
   }
 
-  /// Cadastra um novo usuário no banco de dados
+  /// Cadastra um novo usuário no banco de dados.
+  /// Recebe a senha em texto puro e é o ÚNICO ponto que aplica o hash.
   Future<bool> salvar(Usuario usuario) async {
     MySQLConnection? conn;
     try {
@@ -88,7 +117,7 @@ class UsuarioDao {
         {
           "nome": usuario.nome.trim(),
           "login": usuario.login.trim().toLowerCase(),
-          "senha": usuario.senha.trim(),
+          "senha": HashService.gerarHash(usuario.senha),
           "perfil": usuario.perfil.trim(),
         },
       );
