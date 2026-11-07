@@ -1,8 +1,6 @@
 import 'dart:io';
-
 import '../models/usuario.dart';
 import '../repositories/usuario_dao.dart';
-import 'hash_service.dart';
 
 // autenticar(usuario, senha)
 // validarPermissao(usuario, acaoDesejada):
@@ -12,45 +10,39 @@ import 'hash_service.dart';
 
 class AuthService {
   static final UsuarioDao _usuarioDao = UsuarioDao();
-
-  /// Utilitário para gerar hash bcrypt de senhas
-  static String gerarHash(String senha) => HashService.gerarHash(senha);
-
-  // Usuários de contingência em memória caso o banco esteja indisponível.
-  // As senhas ficam apenas como hash bcrypt (cada uma com seu próprio salt).
-  static final List<Usuario> usuariosPadrao = [
-    Usuario(
-      id: 1,
-      login: 'admin',
-      senha: HashService.gerarHash('123'),
-      nome: 'Administrador',
-      perfil: 'Admin',
-    ),
-    Usuario(
-      id: 2,
-      login: 'assistente',
-      senha: HashService.gerarHash('123'),
-      nome: 'Assistente Logística',
-      perfil: 'Assistente',
-    ),
-    Usuario(
-      id: 3,
-      login: 'supervisor',
-      senha: HashService.gerarHash('123'),
-      nome: 'Supervisor Logística',
-      perfil: 'Supervisor',
-    ),
-    Usuario(
-      id: 4,
-      login: 'almoxarife',
-      senha: HashService.gerarHash('123'),
-      nome: 'Almoxarife',
-      perfil: 'Almoxarife',
-    ),
-  ];
+  // // Usuários de contingência em memória caso o banco esteja indisponível
+  // static final List<Usuario> usuariosPadrao = [
+  //   Usuario(
+  //     id: 1,
+  //     login: 'admin',
+  //     senha: '123',
+  //     nome: 'Administrador',
+  //     perfil: 'Admin',
+  //   ),
+  //   Usuario(
+  //     id: 2,
+  //     login: 'assistente',
+  //     senha: '123',
+  //     nome: 'Assistente Logística',
+  //     perfil: 'Assistente',
+  //   ),
+  //   Usuario(
+  //     id: 3,
+  //     login: 'supervisor',
+  //     senha: '123',
+  //     nome: 'Supervisor Logística',
+  //     perfil: 'Supervisor',
+  //   ),
+  //   Usuario(
+  //     id: 4,
+  //     login: 'almoxarife',
+  //     senha: '123',
+  //     nome: 'Almoxarife',
+  //     perfil: 'Almoxarife',
+  //   ),
+  // ];
 
   static Usuario? usuarioLogado;
-
   /// Autentica o usuário pelo banco de dados (com contingência em memória)
   static Future<Usuario?> autenticar(String login, String senha) async {
     // 1. Tenta autenticar pelo banco de dados MySQL
@@ -63,22 +55,22 @@ class AuthService {
       // Ignora erro e tenta contingência
     }
 
-    // 2. Se não encontrou no banco ou o banco falhou, tenta os usuários locais
-    try {
-      return usuariosPadrao.firstWhere(
-        (u) =>
-            u.login.trim().toLowerCase() == login.trim().toLowerCase() &&
-            HashService.verificar(senha, u.senha),
-      );
-    } catch (_) {
-      return null;
-    }
+    // // 2. Se não encontrou no banco ou o banco falhou, tenta os usuários locais
+    // try {
+    //   return usuariosPadrao.firstWhere(
+    //     (u) =>
+    //         u.login.trim().toLowerCase() == login.trim().toLowerCase() &&
+    //         u.senha == senha.trim(),
+    //   );
+    // } catch (_) {
+    //   return null;
+    // }
   }
 
   /// Exibe a tela de login simples no terminal
   static Future<Usuario?> realizarLoginTerminal({int maxTentativas = 3}) async {
     // Garante que a tabela exista e esteja populada no banco
-    await _usuarioDao.inicializarTabela();
+    // await _usuarioDao.inicializarTabela();
 
     int tentativas = maxTentativas;
 
@@ -86,9 +78,6 @@ class AuthService {
     print("       SISTEMA DE CADASTRO DE NFs        ");
     print("           ACESSO AO SISTEMA             ");
     print("=========================================");
-    print("Padrão: admin, assistente, almoxarife, supervisor");
-    print("Senha padrão: 123");
-    print("-----------------------------------------");
 
     while (tentativas > 0) {
       stdout.write("Usuário: ");
@@ -102,7 +91,7 @@ class AuthService {
       if (usuario != null) {
         usuarioLogado = usuario;
         print("\n[OK] Login realizado com sucesso!");
-        print("Bem-vindo(a), ${usuario.nome} (${usuario.perfil})!\n");
+        print("Bem-vindo(a), ${usuario.nome}!\n");
         return usuario;
       } else {
         tentativas--;
@@ -175,6 +164,9 @@ class AuthService {
     stdout.write("Senha: ");
     String senha = (stdin.readLineSync() ?? "").trim();
 
+    stdout.write("Senha: ");
+    int? equipe = int.tryParse(stdin.readLineSync().toString());
+
     if (nome.isEmpty || login.isEmpty || senha.isEmpty) {
       print("[!] Erro: Nome, login e senha são obrigatórios!");
       return;
@@ -210,8 +202,9 @@ class AuthService {
     var novoUsuario = Usuario(
       nome: nome,
       login: login,
-      senha: senha, // texto puro: o hash é aplicado no UsuarioDao.salvar()
+      senha: senha,
       perfil: perfil,
+      equipe: equipe,
     );
 
     print("Salvando usuário no banco de dados...");
@@ -230,14 +223,7 @@ class AuthService {
     var lista = await _usuarioDao.buscarTodos();
 
     if (lista.isEmpty) {
-      print("Nenhum usuário encontrado no banco de dados (exibindo padrões locais):");
-      for (var u in usuariosPadrao) {
-        print(u);
-      }
-    } else {
-      for (var u in lista) {
-        print(u);
-      }
+      print("Nenhum usuário encontrado no banco de dados");
     }
   }
 

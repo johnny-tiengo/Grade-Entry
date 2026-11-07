@@ -4,6 +4,7 @@ class Usuario {
   String senha;
   String nome;
   String perfil; // Admin, Assistente, Supervisor, Almoxarife
+  int? equipe;
 
   Usuario({
     this.id,
@@ -11,6 +12,7 @@ class Usuario {
     required this.senha,
     required this.nome,
     required this.perfil,
+    required this.equipe,
   });
 
   @override

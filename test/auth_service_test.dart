@@ -56,12 +56,9 @@ void main() {
       expect(HashService.verificar('outraSenha', hash), isFalse);
     });
 
-    test('Não deve autenticar digitando o hash no lugar da senha', () async {
-      final hashDoAdmin = AuthService.usuariosPadrao
-          .firstWhere((u) => u.login == 'admin')
-          .senha;
-      final usuario = await AuthService.autenticar('admin', hashDoAdmin);
-      expect(usuario, isNull);
+    test('O próprio hash não deve ser aceito como senha', () {
+      final hash = HashService.gerarHash('123');
+      expect(HashService.verificar(hash, hash), isFalse);
     });
 
     test('Deve reconhecer e validar hash SHA-256 legado (para migração)', () {
@@ -72,11 +69,5 @@ void main() {
       expect(HashService.verificarSha256Legado('errada', sha256De123), isFalse);
     });
 
-    test('Usuários padrão em memória devem armazenar senha em hash bcrypt', () {
-      for (var u in AuthService.usuariosPadrao) {
-        expect(u.senha, isNot(equals('123')));
-        expect(HashService.ehBcrypt(u.senha), isTrue);
-      }
-    });
   });
 }

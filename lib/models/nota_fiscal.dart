@@ -11,10 +11,9 @@ class NotaFiscal {
   String fornecedor;
   String recebedor;
   String centroCusto;
-  int? assistenteLog;
-  int? supervisorLog;
-  int? almoxarifeLog;
   DateTime? dataFinalizacao;
+  int? usuario;
+  int? equipe;
 
   NotaFiscal({
     this.id,
@@ -27,22 +26,21 @@ class NotaFiscal {
     required this.fornecedor,
     required this.recebedor, //
     required this.centroCusto,
-    this.assistenteLog,
-    this.supervisorLog,
-    this.almoxarifeLog,
     this.dataFinalizacao,
+    this.equipe,
+    this.usuario,
   });
 
   // Método para retornar uma linha formatada com os dados da NF
   String toCsv() {
-    return '$id,$numeroNota,$numeroPedido,$dataRecebimento,$dataCadastro,$recebedor,$chaveAcesso,$statusNota,$fornecedor,$centroCusto,$assistenteLog\n';
+    return '$id,$numeroNota,$numeroPedido,$dataRecebimento,$dataCadastro,$recebedor,$chaveAcesso,$statusNota,$fornecedor,$centroCusto,$usuario,$equipe\n';
   }
 
   // Padrão brasileiro (24h)
-  final DateFormat formatoBr = DateFormat('dd/MM/yyyy HH:mm:ss');
+  final DateFormat _formatoBr = DateFormat('dd/MM/yyyy HH:mm');
 
   @override
   String toString() {
-    return "[$id] Nº Nota: $numeroNota | Recebimento: ${formatoBr.format(dataRecebimento)} | Recebedor: $recebedor | Status: ${statusNota!.toUpperCase()} |";
+    return "[$id] Nº Nota: $numeroNota | Recebimento: ${_formatoBr.format(dataRecebimento)} | Recebedor: $recebedor | Status: ${statusNota!.toUpperCase()} |";
   }
 }

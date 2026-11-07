@@ -2,24 +2,56 @@
 // listarTodos() -> Executa o SELECT * FROM... e retorna uma lista de NotaFiscal.
 // buscarPorNumero(String numero) -> SELECT ... WHERE numero = ...
 // deletar(int id) -> DELETE FROM ...
-
-import 'dart:io'; // Inputs
-
 import 'package:mysql_client/mysql_client.dart';
-
-import './database.dart';
-import '../models/nota_fiscal.dart';
+import 'package:grade_entry/repositories/database.dart';
+import 'package:grade_entry/models/nota_fiscal.dart';
 
 class NotaFiscalDao {
-  // 1. INSERIR NF
+  // Converte uma linha do banco em NotaFiscal (usado por todas as consultas)
+  NotaFiscal _mapear(ResultSetRow row) {
+    int? inteiro(String col) => int.tryParse(row.colByName(col) ?? '');
+    DateTime? data(String col) => DateTime.tryParse(row.colByName(col) ?? '');
+
+    return NotaFiscal(
+      id: inteiro("idnotaFiscal"),
+      numeroNota: int.parse(row.colByName("numeroNota")!),
+      numeroPedido: int.parse(row.colByName("numeroPedido")!),
+      chaveAcesso: row.colByName("chaveAcesso") ?? '',
+      statusNota: row.colByName("statusNota"),
+      dataRecebimento: DateTime.parse(row.colByName("dataRecebimento")!),
+      dataCadastro: data("dataCadastro"),
+      fornecedor: row.colByName("fornecedor") ?? '',
+      recebedor: row.colByName("recebedor") ?? '',
+      centroCusto: row.colByName("centroCusto") ?? '',
+      dataFinalizacao: data("dataFinalizacao"),
+    );
+  }
+
+  Future<List<NotaFiscal>> _consultar(String sql, [Map<String, dynamic>? params]) async {
+    final lista = <NotaFiscal>[];
+    MySQLConnection? conn;
+    try {
+      conn = await Database.abrirMySQL();
+      final result = await conn.execute(sql, params);
+      for (final row in result.rows) {
+        lista.add(_mapear(row));
+      }
+    } catch (e) {
+      print("Erro ao buscar NFs: $e");
+    } finally {
+      if (conn != null && conn.connected) await conn.close();
+    }
+    return lista;
+  }
+
+  // 1. INSERIR NF (igual ao original)
   Future<void> salvar(NotaFiscal nfAdd) async {
     MySQLConnection? conn;
     try {
       conn = await Database.abrirMySQL();
-
       var sql =
-          "INSERT INTO notafiscal (numeroNota, chaveAcesso, numeroPedido, dataRecebimento, fornecedor, centroCusto, assistenteLog , supervisorLog, almoxarifeLog, dataFinalizacao, dataCadastro, recebedor, statusNota) "
-          "VALUES (:numeroNota, :chaveAcesso, :numeroPedido, :dataRecebimento, :fornecedor, :centroCusto, :assistenteLog,:supervisorLog,:almoxarifeLog,:dataFinalizacao, :dataCadastro, :recebedor, :statusNota);";
+          "INSERT INTO notafiscal (numeroNota, chaveAcesso, numeroPedido, dataRecebimento, fornecedor, centroCusto, equipe, usuario, dataFinalizacao, dataCadastro, recebedor, statusNota) "
+          "VALUES (:numeroNota, :chaveAcesso, :numeroPedido, :dataRecebimento, :fornecedor, :centroCusto,:equipe , :usuario,:dataFinalizacao, :dataCadastro, :recebedor, :statusNota);";
       await conn.execute(sql, {
         "numeroNota": nfAdd.numeroNota,
         "chaveAcesso": nfAdd.chaveAcesso,
@@ -29,64 +61,39 @@ class NotaFiscalDao {
         "fornecedor": nfAdd.fornecedor,
         "recebedor": nfAdd.recebedor,
         "centroCusto": nfAdd.centroCusto,
-        "assistenteLog": nfAdd.assistenteLog,
-        "supervisorLog": nfAdd.supervisorLog,
-        "almoxarifeLog": nfAdd.almoxarifeLog,
         "dataFinalizacao": nfAdd.dataFinalizacao,
         "statusNota": nfAdd.statusNota,
+        "usuario": nfAdd.usuario,
+        "equipe": nfAdd.equipe,
       });
-
-      print("Cliente salvo com sucesso!");
+      print("NF salva com sucesso!");
     } catch (e) {
-      print("Erro ao salvar cliente: $e");
+      print("Erro ao salvar NF: $e");
     } finally {
-      if (conn != null && conn.connected) {
-        await conn.close();
-      }
+      if (conn != null && conn.connected) await conn.close();
     }
   }
 
-  // 2. RETORNAR LISTA DE NOTAS FISCAIS
-  Future<List<NotaFiscal>> buscarTodos() async {
-    List<NotaFiscal> lista = [];
-    MySQLConnection? conn;
-    try {
-      conn = await Database.abrirMySQL();
+  // 2. LISTAR TODAS
+  Future<List<NotaFiscal>> buscarTodos() =>
+      _consultar("SELECT * FROM notafiscal;");
 
-      var result = await conn.execute("SELECT * FROM notafiscal;");
-
-      for (var row in result.rows) {
-        lista.add(
-          NotaFiscal(
-            id: int.tryParse(row.colByName("idnotaFiscal").toString()),
-            numeroNota: int.parse(row.colByName("numeroNota").toString()),
-            dataRecebimento: DateTime.parse(
-              row.colByName("dataRecebimento").toString(),
-            ),
-            dataCadastro: DateTime.parse(
-              row.colByName("dataCadastro").toString(),
-            ),
-            recebedor: row.colByName("recebedor").toString(),
-            numeroPedido: int.parse(row.colByName("numeroPedido").toString()),
-            chaveAcesso: row.colByName("chaveAcesso").toString(),
-            statusNota: row.colByName("statusNota").toString(),
-            fornecedor: row.colByName("fornecedor").toString(),
-            centroCusto: row.colByName("centroCusto").toString(),
-            assistenteLog: int.parse(row.colByName("assistenteLog").toString()),
-          ),
-        );
-      }
-    } catch (e) {
-      print(" Erro ao buscar NFs: $e");
-    } finally {
-      if (conn != null && conn.connected) {
-        await conn.close();
-      }
-    }
-    return lista;
+  // NOVO: busca direto no banco pelo número da nota
+  Future<NotaFiscal?> buscarPorNumero(int numero) async {
+    final r = await _consultar(
+        "SELECT * FROM notafiscal WHERE numeroNota = :n LIMIT 1;", {"n": numero});
+    return r.isEmpty ? null : r.first;
   }
 
-  // 3. ATUALIZAR CADASTRO
+  // ------------------------------------------------------------------------------------
+  // NOVO: usado pelo menu do supervisor (status = 'revisao')
+
+  //A BUSCA DEVE SER FEITA NA TABELA REVISÃO
+  Future<List<NotaFiscal>> buscarPorStatus(String status) => _consultar(
+      "SELECT * FROM notafiscal WHERE statusNota = :s;", {"s": status});
+  //-------------------------------------------------------------------------------------
+
+  // 3. ATUALIZAR (igual ao original)
   Future<void> atualizar(int idAtt, String colunaDB, attCampo) async {
     MySQLConnection? conn;
     try {
@@ -97,32 +104,21 @@ class NotaFiscalDao {
     } catch (e) {
       print("Erro ao tentar atualizar a NF: $e");
     } finally {
-      if (conn != null && conn.connected) {
-        await conn.close();
-      }
+      if (conn != null && conn.connected) await conn.close();
     }
   }
 
-  // 4. APAGAR REGISTRO
+  // 4. APAGAR (a confirmação [1]SIM/[2]NÃO agora é feita no menu, não no DAO)
   Future<void> apagarNota(int idDel) async {
     MySQLConnection? conn;
     try {
-      stdout.write(
-        "Tem certeza que deseja apagar a NF:$idDel ? [1]SIM ,[2]NÃO :",
-      );
-      int confirm = int.parse(stdin.readLineSync()!);
-      if (confirm == 2) {
-        return;
-      }
       conn = await Database.abrirMySQL();
-      var sql = "DELETE FROM notafiscal WHERE idnotafiscal = :idDel";
-      await conn.execute(sql, {"idDel": idDel});
+      await conn.execute(
+          "DELETE FROM notafiscal WHERE idnotafiscal = :idDel", {"idDel": idDel});
     } catch (e) {
       print("Erro ao tentar apagar a NF: $e");
     } finally {
-      if (conn != null && conn.connected) {
-        await conn.close();
-      }
+      if (conn != null && conn.connected) await conn.close();
     }
   }
 }
