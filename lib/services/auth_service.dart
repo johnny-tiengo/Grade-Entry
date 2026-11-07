@@ -2,6 +2,7 @@ import 'dart:io';
 
 import '../models/usuario.dart';
 import '../repositories/usuario_dao.dart';
+import 'hash_service.dart';
 
 // autenticar(usuario, senha)
 // validarPermissao(usuario, acaoDesejada):
@@ -12,33 +13,37 @@ import '../repositories/usuario_dao.dart';
 class AuthService {
   static final UsuarioDao _usuarioDao = UsuarioDao();
 
-  // Usuários de contingência em memória caso o banco esteja indisponível
+  /// Utilitário para gerar hash bcrypt de senhas
+  static String gerarHash(String senha) => HashService.gerarHash(senha);
+
+  // Usuários de contingência em memória caso o banco esteja indisponível.
+  // As senhas ficam apenas como hash bcrypt (cada uma com seu próprio salt).
   static final List<Usuario> usuariosPadrao = [
     Usuario(
       id: 1,
       login: 'admin',
-      senha: '123',
+      senha: HashService.gerarHash('123'),
       nome: 'Administrador',
       perfil: 'Admin',
     ),
     Usuario(
       id: 2,
       login: 'assistente',
-      senha: '123',
+      senha: HashService.gerarHash('123'),
       nome: 'Assistente Logística',
       perfil: 'Assistente',
     ),
     Usuario(
       id: 3,
       login: 'supervisor',
-      senha: '123',
+      senha: HashService.gerarHash('123'),
       nome: 'Supervisor Logística',
       perfil: 'Supervisor',
     ),
     Usuario(
       id: 4,
       login: 'almoxarife',
-      senha: '123',
+      senha: HashService.gerarHash('123'),
       nome: 'Almoxarife',
       perfil: 'Almoxarife',
     ),
@@ -63,7 +68,7 @@ class AuthService {
       return usuariosPadrao.firstWhere(
         (u) =>
             u.login.trim().toLowerCase() == login.trim().toLowerCase() &&
-            u.senha == senha.trim(),
+            HashService.verificar(senha, u.senha),
       );
     } catch (_) {
       return null;
@@ -205,7 +210,7 @@ class AuthService {
     var novoUsuario = Usuario(
       nome: nome,
       login: login,
-      senha: senha,
+      senha: senha, // texto puro: o hash é aplicado no UsuarioDao.salvar()
       perfil: perfil,
     );
 
