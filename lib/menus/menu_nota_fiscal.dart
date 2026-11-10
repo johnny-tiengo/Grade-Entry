@@ -1,11 +1,7 @@
-import 'package:grade_entry/models/centrocusto.dart';
 import 'package:grade_entry/models/nota_fiscal.dart';
 import 'package:grade_entry/models/sessao.dart';
-import 'package:grade_entry/models/usuario.dart';
 import 'package:grade_entry/repositories/nota_fiscal_services.dart';
-import 'package:grade_entry/repositories/usuario_dao.dart';
 import 'package:grade_entry/views/console_ui.dart';
-
 import '../repositories/centrocusto_dao.dart';
 import '../repositories/fornecedor_dao.dart';
 
@@ -32,7 +28,7 @@ class MenuNotaFiscal extends ConsoleUI {
     OpcaoMenu('3', 'Buscar NF pelo número', _buscar),
     if (!sessao.ehAlmoxarife) OpcaoMenu('4', 'Editar NF', _editar),
     if (!sessao.ehSupervisor)
-      // OpcaoMenu('5', 'Pedir revisão ao supervisor', _pedirRevisao),
+       OpcaoMenu('5', 'Pedir revisão ao supervisor', _pedirRevisao),
       if (sessao.ehAdmin) OpcaoMenu('6', 'Excluir NF', _excluir),
   ];
 
@@ -167,12 +163,12 @@ class MenuNotaFiscal extends ConsoleUI {
     print('Campo atualizado!');
   }
 
-  // Future<void> _pedirRevisao() async {
-  //   final nota = await _pedirNota();
-  //   if (nota == null) return;
-  //   await service.solicitarRevisao(nota, sessao);
-  //   print('NF ${nota.numeroNota} enviada para revisão do supervisor.');
-  // }
+  Future<void> _pedirRevisao() async {
+    final nota = await _pedirNota();
+    if (nota == null) return;
+    await service.solicitarRevisao(nota, sessao);
+    print('NF ${nota.numeroNota} enviada para revisão do supervisor.');
+  }
 
   Future<void> _excluir() async {
     final nota = await _pedirNota();

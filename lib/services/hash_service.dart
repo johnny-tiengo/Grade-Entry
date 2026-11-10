@@ -4,7 +4,6 @@ import 'package:bcrypt/bcrypt.dart';
 import 'package:crypto/crypto.dart';
 
 /// Responsável por proteger as senhas antes de irem para o banco.
-///
 /// Usa bcrypt: cada hash tem um salt aleatório embutido e o cálculo é
 /// propositalmente lento, o que dificulta ataques de força bruta e
 /// inviabiliza tabelas de hashes prontos (rainbow tables).

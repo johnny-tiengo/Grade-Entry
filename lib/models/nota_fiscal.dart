@@ -14,6 +14,8 @@ class NotaFiscal {
   DateTime? dataFinalizacao;
   int? usuario;
   int? equipe;
+  String? setorAtraso;
+  String? motivoAtraso;
 
   NotaFiscal({
     this.id,
@@ -29,6 +31,8 @@ class NotaFiscal {
     this.dataFinalizacao,
     this.equipe,
     this.usuario,
+    this.setorAtraso,
+    this.motivoAtraso,
   });
 
   // Método para retornar uma linha formatada com os dados da NF

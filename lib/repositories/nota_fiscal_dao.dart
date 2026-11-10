@@ -24,6 +24,10 @@ class NotaFiscalDao {
       recebedor: row.colByName("recebedor") ?? '',
       centroCusto: row.colByName("centroCusto") ?? '',
       dataFinalizacao: data("dataFinalizacao"),
+      usuario: inteiro("usuario"),
+      equipe: inteiro("equipe"),
+      setorAtraso: row.colByName("setorAtraso"),
+      motivoAtraso: row.colByName("motivoAtraso"),
     );
   }
 
@@ -92,6 +96,63 @@ class NotaFiscalDao {
   Future<List<NotaFiscal>> buscarPorStatus(String status) => _consultar(
       "SELECT * FROM notafiscal WHERE statusNota = :s;", {"s": status});
   //-------------------------------------------------------------------------------------
+
+  // Busca NFs que estouraram o SLA de 72h (a partir de dataRecebimento) e ainda não têm setorAtraso preenchido
+  Future<List<NotaFiscal>> buscarSlaEstouradoPendente({int? equipe}) {
+    if (equipe != null) {
+      return _consultar(
+        "SELECT * FROM notafiscal "
+        "WHERE TIMESTAMPDIFF(HOUR, dataRecebimento, COALESCE(dataFinalizacao, NOW())) >= 72 "
+        "AND (setorAtraso IS NULL OR setorAtraso = '') "
+        "AND equipe = :equipe;",
+        {"equipe": equipe},
+      );
+    }
+    return _consultar(
+      "SELECT * FROM notafiscal "
+      "WHERE TIMESTAMPDIFF(HOUR, dataRecebimento, COALESCE(dataFinalizacao, NOW())) >= 72 "
+      "AND (setorAtraso IS NULL OR setorAtraso = '');",
+    );
+  }
+
+  // Busca todas as NFs que estouraram o SLA de 72h (já justificadas ou não)
+  Future<List<NotaFiscal>> buscarTodasSlaEstourado({int? equipe}) {
+    if (equipe != null) {
+      return _consultar(
+        "SELECT * FROM notafiscal "
+        "WHERE TIMESTAMPDIFF(HOUR, dataRecebimento, COALESCE(dataFinalizacao, NOW())) >= 72 "
+        "AND equipe = :equipe;",
+        {"equipe": equipe},
+      );
+    }
+    return _consultar(
+      "SELECT * FROM notafiscal "
+      "WHERE TIMESTAMPDIFF(HOUR, dataRecebimento, COALESCE(dataFinalizacao, NOW())) >= 72;",
+    );
+  }
+
+  // Registra o setor responsável e o motivo do atraso de SLA
+  Future<void> registrarJustificativaSla(
+    int idNota,
+    String setor,
+    String motivo,
+  ) async {
+    MySQLConnection? conn;
+    try {
+      conn = await Database.abrirMySQL();
+      var sql =
+          "UPDATE notafiscal SET setorAtraso = :setor, motivoAtraso = :motivo WHERE idnotaFiscal = :id";
+      await conn.execute(sql, {
+        "setor": setor,
+        "motivo": motivo,
+        "id": idNota,
+      });
+    } catch (e) {
+      print("Erro ao registrar justificativa de SLA: $e");
+    } finally {
+      if (conn != null && conn.connected) await conn.close();
+    }
+  }
 
   // 3. ATUALIZAR (igual ao original)
   Future<void> atualizar(int idAtt, String colunaDB, attCampo) async {

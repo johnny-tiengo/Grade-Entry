@@ -19,7 +19,6 @@ Perfil perfilDe(String texto) {
 
 Future<void> main() async {
 
-
   var usuario = await AuthService.realizarLoginTerminal();
   if (usuario == null) {
     print("Acesso negado. Encerrando o sistema...");

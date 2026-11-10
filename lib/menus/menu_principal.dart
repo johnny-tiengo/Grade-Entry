@@ -4,6 +4,7 @@ import 'package:grade_entry/repositories/nota_fiscal_services.dart';
 import 'package:grade_entry/views/console_ui.dart';
 import 'package:grade_entry/menus/menu_nota_fiscal.dart';
 import 'package:grade_entry/menus/menu_supervisor.dart';
+import 'package:grade_entry/menus/menu_sla.dart';
 
 /// Menu raiz. As opções mudam conforme o perfil de quem logou.
 class MenuPrincipal extends ConsoleUI {
@@ -33,6 +34,8 @@ class MenuPrincipal extends ConsoleUI {
           OpcaoMenu('3', 'Cadastrar usuário', abrirCadastroUsuario!),
         if (sessao.ehAdmin)
         OpcaoMenu('4', 'Gerar arquivo CSV do banco', gerarCSV),
+        OpcaoMenu('5', 'Controle de SLA (72h)',
+            () => MenuSla(sessao, service).executar()),
         
       ];
 }

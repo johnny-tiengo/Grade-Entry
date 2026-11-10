@@ -5,50 +5,6 @@ import '../services/hash_service.dart';
 
 
 class UsuarioDao {
-  /// Cria a tabela usuario se ela não existir e insere os registros padrão caso vazia
-  // Future<void> inicializarTabela() async {
-  //   MySQLConnection? conn;
-  //   try {
-  //     conn = await Database.abrirMySQL();
-  //     await conn.execute('''
-  //       CREATE TABLE IF NOT EXISTS usuario (
-  //         id INT AUTO_INCREMENT PRIMARY KEY,
-  //         nome VARCHAR(100) NOT NULL,
-  //         login VARCHAR(50) NOT NULL UNIQUE,
-  //         senha VARCHAR(100) NOT NULL,
-  //         perfil VARCHAR(50) NOT NULL
-  //       );
-  //     ''');
-
-  //     var res = await conn.execute("SELECT COUNT(*) AS total FROM usuario;");
-  //     int total = 0;
-  //     if (res.rows.isNotEmpty) {
-  //       total = int.tryParse(res.rows.first.colByName("total").toString()) ?? 0;
-  //     }
-
-  //     if (total == 0) {
-  //       await conn.execute('''
-  //         INSERT INTO usuario (nome, login, senha, perfil) VALUES
-  //         ('Administrador', 'admin', '123', 'Admin'),
-  //         ('Assistente Logística', 'assistente', '123', 'Assistente'),
-  //         ('Supervisor Logística', 'supervisor', '123', 'Supervisor'),
-  //         ('Almoxarife', 'almoxarife', '123', 'Almoxarife');
-  //       ''');
-  //     }
-  //   } catch (e) {
-  //     // Se não conseguir conectar ao banco, continua com aviso
-  //   } finally {
-  //     if (conn != null && conn.connected) {
-  //       await conn.close();
-  //     }
-  //   }
-  // }
-
-  /// Autentica um usuário no banco de dados MySQL.
-  /// Busca apenas pelo login e confere a senha em Dart com bcrypt
-  /// (o salt aleatório impede comparar o hash direto no SQL).
-  /// Senhas antigas (texto puro ou SHA-256) são convertidas para bcrypt
-  /// automaticamente no primeiro login válido.
   Future<Usuario?> autenticar(String login, String senha) async {
     MySQLConnection? conn;
     try {

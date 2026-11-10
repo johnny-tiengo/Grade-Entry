@@ -2,45 +2,8 @@ import 'dart:io';
 import '../models/usuario.dart';
 import '../repositories/usuario_dao.dart';
 
-// autenticar(usuario, senha)
-// validarPermissao(usuario, acaoDesejada):
-// Garante que apenas Assistentes/Admin cadastrem,
-// Almoxarife apenas consulte liberações e
-// Supervisor acesse relatórios.
-
 class AuthService {
   static final UsuarioDao _usuarioDao = UsuarioDao();
-  // // Usuários de contingência em memória caso o banco esteja indisponível
-  // static final List<Usuario> usuariosPadrao = [
-  //   Usuario(
-  //     id: 1,
-  //     login: 'admin',
-  //     senha: '123',
-  //     nome: 'Administrador',
-  //     perfil: 'Admin',
-  //   ),
-  //   Usuario(
-  //     id: 2,
-  //     login: 'assistente',
-  //     senha: '123',
-  //     nome: 'Assistente Logística',
-  //     perfil: 'Assistente',
-  //   ),
-  //   Usuario(
-  //     id: 3,
-  //     login: 'supervisor',
-  //     senha: '123',
-  //     nome: 'Supervisor Logística',
-  //     perfil: 'Supervisor',
-  //   ),
-  //   Usuario(
-  //     id: 4,
-  //     login: 'almoxarife',
-  //     senha: '123',
-  //     nome: 'Almoxarife',
-  //     perfil: 'Almoxarife',
-  //   ),
-  // ];
 
   static Usuario? usuarioLogado;
   /// Autentica o usuário pelo banco de dados (com contingência em memória)
@@ -51,20 +14,9 @@ class AuthService {
       if (usuarioBanco != null) {
         return usuarioBanco;
       }
-    } catch (_) {
-      // Ignora erro e tenta contingência
+    } catch (e) {
+      print("Erro na autenticação. [$e]");
     }
-
-    // // 2. Se não encontrou no banco ou o banco falhou, tenta os usuários locais
-    // try {
-    //   return usuariosPadrao.firstWhere(
-    //     (u) =>
-    //         u.login.trim().toLowerCase() == login.trim().toLowerCase() &&
-    //         u.senha == senha.trim(),
-    //   );
-    // } catch (_) {
-    //   return null;
-    // }
   }
 
   /// Exibe a tela de login simples no terminal

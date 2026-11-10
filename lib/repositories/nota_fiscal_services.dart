@@ -5,7 +5,8 @@ import '../repositories/nota_fiscal_dao.dart';
 /// Regras de negócio das NFs. Os menus só leem dados e chamam estes métodos.
 class NotaFiscalService {
   static const statusAberto = 'aberto';
-  static const statusRevisao = 'revisao'; // novo: precisa caber na coluna statusNota
+  static const statusRevisao = 'revisao';
+  static const statusRevisado = 'revisado';
   static const statusFechado = 'fechado';
 
   final NotaFiscalDao _dao;
@@ -22,8 +23,7 @@ class NotaFiscalService {
     required String centroCusto,
     required int usuario,
     required int? equipe,
-    // required int supervisorLog,
-    // required int almoxarifeLog,
+
   }) async {
     if (!RegExp(r'^\d{44}$').hasMatch(chaveAcesso)) {
       throw ArgumentError('A chave de acesso deve ter 44 dígitos.');
@@ -62,16 +62,16 @@ class NotaFiscalService {
 
   Future<void> excluir(NotaFiscal nota) => _dao.apagarNota(nota.id!);
 
-  /// Só o assistente que deu a entrada pode pedir revisão de uma NF aberta.
-  // Future<void> solicitarRevisao(NotaFiscal nota, Sessao quem) async {
-  //   if (nota.assistenteLog != quem.usuarioId) {
-  //     throw ArgumentError('Só o assistente responsável por esta NF pode pedir revisão.');
-  //   }
-  //   if (nota.statusNota != statusAberto) {
-  //     throw ArgumentError('Só NFs com status "aberto" podem ir para revisão.');
-  //   }
-  //   await _dao.atualizar(nota.id!, 'statusNota', statusRevisao);
-  // }
+  /// Só a equipe que deu a entrada pode pedir revisão de uma NF aberta.
+  Future<void> solicitarRevisao(NotaFiscal nota, Sessao quem) async {
+    if (nota.equipe != quem.equipe) { // TESTAR SE APENAS A EQUIPE CONSEGUE PEDIR REVISÃO
+      throw ArgumentError('Só a equipe responsável por esta NF pode pedir revisão.');
+    }
+    if (nota.statusNota != statusAberto) {
+      throw ArgumentError('Só NFs com status "aberto" podem ir para revisão.');
+    }
+    await _dao.atualizar(nota.id!, 'statusNota', statusRevisao);
+  }
 
   /// Supervisor aprova (fechado + dataFinalizacao) ou devolve (aberto).
   Future<void> decidirRevisao(NotaFiscal nota, Sessao quem, {required bool aprovar}) async {
@@ -82,8 +82,8 @@ class NotaFiscalService {
       throw ArgumentError('Esta NF não está em revisão.');
     }
     if (aprovar) {
-      await _dao.atualizar(nota.id!, 'dataFinalizacao', DateTime.now());
-      await _dao.atualizar(nota.id!, 'statusNota', statusFechado);
+      // await _dao.atualizar(nota.id!, 'dataFinalizacao', DateTime.now()); // Alterar - Supervisor não fecha a nota, quem fecha é o almoxarife
+      await _dao.atualizar(nota.id!, 'statusNota', statusRevisado);
     } else {
       await _dao.atualizar(nota.id!, 'statusNota', statusAberto);
     }
