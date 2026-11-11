@@ -3,7 +3,7 @@ class Usuario {
   String login;
   String senha;
   String nome;
-  String perfil; // Admin, Assistente, Supervisor, Almoxarife
+  String perfil; // Admin, Assistente, Supervisor, Almoxarife, Visitante
   int? equipe;
 
   Usuario({
