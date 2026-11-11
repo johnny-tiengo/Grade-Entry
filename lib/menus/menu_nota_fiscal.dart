@@ -2,6 +2,7 @@ import 'package:grade_entry/models/nota_fiscal.dart';
 import 'package:grade_entry/models/sessao.dart';
 import 'package:grade_entry/repositories/nota_fiscal_services.dart';
 import 'package:grade_entry/views/console_ui.dart';
+
 import '../repositories/centrocusto_dao.dart';
 import '../repositories/fornecedor_dao.dart';
 
@@ -21,16 +22,19 @@ class MenuNotaFiscal extends ConsoleUI {
   String get titulo => 'NOTAS FISCAIS (${sessao.username})';
 
   @override
-  List<OpcaoMenu> get opcoes => [
-    if (!sessao.ehAlmoxarife) OpcaoMenu('1', 'Cadastrar nova NF', _cadastrar),
+  List<OpcaoMenu> get opcoes => sessao.ehVisitante
+      ? [OpcaoMenu('3', 'Buscar NF pelo número', buscar)]
+      : [
+          if (!sessao.ehAlmoxarife)
+            OpcaoMenu('1', 'Cadastrar nova NF', _cadastrar),
 
-    OpcaoMenu('2', 'Listar NFs', _listar),
-    OpcaoMenu('3', 'Buscar NF pelo número', _buscar),
-    if (!sessao.ehAlmoxarife) OpcaoMenu('4', 'Editar NF', _editar),
-    if (!sessao.ehSupervisor)
-       OpcaoMenu('5', 'Pedir revisão ao supervisor', _pedirRevisao),
-      if (sessao.ehAdmin) OpcaoMenu('6', 'Excluir NF', _excluir),
-  ];
+          OpcaoMenu('2', 'Listar NFs', _listar),
+          OpcaoMenu('3', 'Buscar NF pelo número', buscar),
+          if (!sessao.ehAlmoxarife) OpcaoMenu('4', 'Editar NF', _editar),
+          if (!sessao.ehSupervisor)
+            OpcaoMenu('5', 'Pedir revisão ao supervisor', _pedirRevisao),
+          if (sessao.ehAdmin) OpcaoMenu('6', 'Excluir NF', _excluir),
+        ];
 
   Future<void> _cadastrar() async {
     final ccDao = CentrocustoDao();
@@ -98,7 +102,8 @@ class MenuNotaFiscal extends ConsoleUI {
     return nota;
   }
 
-  Future<void> _buscar() async {
+  /// Também usada pelo perfil Visitante, que só tem acesso a esta busca.
+  Future<void> buscar() async {
     final nota = await _pedirNota();
     if (nota != null) print(nota);
   }

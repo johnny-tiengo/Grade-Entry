@@ -14,6 +14,7 @@ Perfil perfilDe(String texto) {
   if (p == 'admin') return Perfil.admin;
   if (p == 'supervisor') return Perfil.supervisor;
   if (p == 'almoxarife') return Perfil.almoxarife;
+  if (p == 'visitante') return Perfil.visitante;
   return Perfil.assistente;
 }
 

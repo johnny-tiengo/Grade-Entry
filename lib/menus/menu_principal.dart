@@ -24,18 +24,35 @@ class MenuPrincipal extends ConsoleUI {
   String get textoSaida => 'Sair';
 
   @override
-  List<OpcaoMenu> get opcoes => [
-        OpcaoMenu('1', 'Notas Fiscais',
-            () => MenuNotaFiscal(sessao, service).executar()),
-        if (sessao.ehSupervisor || sessao.ehAdmin)
-          OpcaoMenu('2', 'Revisão de notas',
-              () => MenuSupervisor(sessao, service).executar()),
-        if (sessao.ehAdmin || sessao.ehSupervisor)
-          OpcaoMenu('3', 'Cadastrar usuário', abrirCadastroUsuario!),
-        if (sessao.ehAdmin)
-        OpcaoMenu('4', 'Gerar arquivo CSV do banco', gerarCSV),
-        OpcaoMenu('5', 'Controle de SLA (72h)',
-            () => MenuSla(sessao, service).executar()),
-        
-      ];
+  List<OpcaoMenu> get opcoes => sessao.ehVisitante
+      // Visitante: acesso somente à busca de NF pelo número.
+      ? [
+          OpcaoMenu(
+            '1',
+            'Buscar NF pelo número',
+            () => MenuNotaFiscal(sessao, service).buscar(),
+          ),
+        ]
+      : [
+          OpcaoMenu(
+            '1',
+            'Notas Fiscais',
+            () => MenuNotaFiscal(sessao, service).executar(),
+          ),
+          if (sessao.ehSupervisor || sessao.ehAdmin)
+            OpcaoMenu(
+              '2',
+              'Revisão de notas',
+              () => MenuSupervisor(sessao, service).executar(),
+            ),
+          if (sessao.ehAdmin || sessao.ehSupervisor)
+            OpcaoMenu('3', 'Cadastrar usuário', abrirCadastroUsuario!),
+          if (sessao.ehAdmin)
+            OpcaoMenu('4', 'Gerar arquivo CSV do banco', gerarCSV),
+          OpcaoMenu(
+            '5',
+            'Controle de SLA (72h)',
+            () => MenuSla(sessao, service).executar(),
+          ),
+        ];
 }

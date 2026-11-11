@@ -129,6 +129,7 @@ class AuthService {
     print("2. Assistente");
     print("3. Supervisor");
     print("4. Almoxarife");
+    print("5. Visitante (somente busca de NF pelo número)");
     stdout.write("Opção: ");
     String perfilOpcao = stdin.readLineSync() ?? "";
 
@@ -145,6 +146,9 @@ class AuthService {
         break;
       case '4':
         perfil = 'Almoxarife';
+        break;
+      case '5':
+        perfil = 'Visitante';
         break;
       default:
         print("[!] Opção inválida de perfil. Operação cancelada.");
@@ -203,6 +207,7 @@ class AuthService {
     print("2. Assistente");
     print("3. Supervisor");
     print("4. Almoxarife");
+    print("5. Visitante (somente busca de NF pelo número)");
     stdout.write("Opção: ");
     String cargoOpcao = stdin.readLineSync() ?? "";
 
@@ -219,6 +224,9 @@ class AuthService {
         break;
       case '4':
         novoCargo = 'Almoxarife';
+        break;
+      case '5':
+        novoCargo = 'Visitante';
         break;
       default:
         print("[!] Opção inválida. Nenhuma alteração realizada.");
@@ -277,6 +285,7 @@ class AuthService {
         return usuarioLogado!.perfil.toLowerCase() == 'assistente';
       case 'consultar':
         return usuarioLogado!.perfil.toLowerCase() == 'assistente' ||
+            usuarioLogado!.perfil.toLowerCase() == 'visitante' ||
             usuarioLogado!.perfil.toLowerCase() == 'almoxarife' ||
             usuarioLogado!.perfil.toLowerCase() == 'supervisor';
       case 'relatorios':
