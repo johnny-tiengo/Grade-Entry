@@ -124,11 +124,11 @@ class NotaFiscalDao {
     try {
       conn = await Database.abrirMySQL();
 
-      // 1. Atualiza o status da NF para 'revisao'
-      await conn.execute(
-        "UPDATE notafiscal SET statusNota = 'revisao' WHERE idnotaFiscal = :id;",
-        {"id": idNota},
-      );
+      // // 1. Atualiza o status da NF para 'revisao'
+      // await conn.execute(
+      //   "UPDATE notafiscal SET statusNota = 'revisao' WHERE idnotaFiscal = :id;",
+      //   {"id": idNota},
+      // );
 
       // 2. Verifica se já existe registro dessa NF na tabela revisao
       final existente = await conn.execute(

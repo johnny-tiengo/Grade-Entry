@@ -14,6 +14,7 @@ Perfil perfilDe(String texto) {
   if (p == 'admin') return Perfil.admin;
   if (p == 'supervisor') return Perfil.supervisor;
   if (p == 'almoxarife') return Perfil.almoxarife;
+  if (p == 'visitante') return Perfil.visitante;
   return Perfil.assistente;
 }
 
@@ -30,7 +31,7 @@ Future<void> main() async {
   final sessao = Sessao(
     usuarioId: usuario.id!,
     username: usuario.nome,
-    perfil: perfilDe(usuario.perfil),
+    perfil: usuario.perfil,
     equipe: usuario.equipe,
     //perfil: usuario.id == 1 ? Perfil.admin : Perfil.assistente,
      // Ajuste conforme necessário
