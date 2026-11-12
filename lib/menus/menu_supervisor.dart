@@ -12,13 +12,21 @@ class MenuSupervisor extends ConsoleUI {
 
   @override
   List<OpcaoMenu> get opcoes => [
-        OpcaoMenu('1', 'Ver NFs em revisão', _listar),
-        OpcaoMenu('2', 'Aprovar NF (fechar)', () => _decidir(aprovar: true)),
-        OpcaoMenu('3', 'Devolver NF (reabrir)', () => _decidir(aprovar: false)),
-      ];
+    OpcaoMenu('1', 'Ver NFs em revisão', _listar),
+    OpcaoMenu(
+      '2',
+      'Aprovar revisão (revisão -> Em análise | NF -> aberto)',
+      () => _decidir(aprovar: true),
+    ),
+    OpcaoMenu(
+      '3',
+      'Liberar/Devolver NF (revisão -> Liberado | NF -> aberto)',
+      () => _decidir(aprovar: false),
+    ),
+  ];
 
   Future<void> _listar() async {
-    final notas = await service.listarEmRevisao();
+    final notas = await service.listarEmRevisao(sessao);
     if (notas.isEmpty) {
       print('Nenhuma NF aguardando revisão.');
       return;
@@ -27,7 +35,7 @@ class MenuSupervisor extends ConsoleUI {
   }
 
   Future<void> _decidir({required bool aprovar}) async {
-     final escolha = lerTexto('Deseja continuar? [1] Sim [2] Não');
+    final escolha = lerTexto('Deseja continuar? [1] Sim [2] Não');
     if (escolha != '1') {
       print('Operação cancelada.');
       return;
@@ -38,6 +46,10 @@ class MenuSupervisor extends ConsoleUI {
       return;
     }
     await service.decidirRevisao(nota, sessao, aprovar: aprovar);
-    print(aprovar ? 'NF aprovada e fechada.' : 'NF devolvida (status aberto).');
+    print(
+      aprovar
+          ? 'Revisão aprovada: estado alterado para "Em análise" e NF voltou para "aberto".'
+          : 'NF liberada/devolvida (status "aberto").',
+    );
   }
 }

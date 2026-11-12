@@ -79,7 +79,7 @@ Future<void> atualizar(Fornecedor fornecedor) async {
         "Fornecedor com ID ${fornecedor.idfornecedor} atualizado com sucesso!",
       );
     } else {
-      print("Nenhum cliente encontrado com o ID ${fornecedor.idfornecedor}.");
+      print("Nenhum fornecedor encontrado com o ID ${fornecedor.idfornecedor}.");
     }
   } catch (e) {
     print("Erro ao atualizar fornecedor: $e");

@@ -14,6 +14,7 @@ class NotaFiscal {
   DateTime? dataFinalizacao;
   int? usuario;
   int? equipe;
+  int? estoque;
   String? setorAtraso;
   String? motivoAtraso;
 
@@ -31,6 +32,7 @@ class NotaFiscal {
     this.dataFinalizacao,
     this.equipe,
     this.usuario,
+    this.estoque,
     this.setorAtraso,
     this.motivoAtraso,
   });
