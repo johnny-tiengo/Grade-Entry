@@ -4,6 +4,7 @@ import 'package:grade_entry/repositories/nota_fiscal_services.dart';
 import 'package:grade_entry/views/console_ui.dart';
 
 import '../repositories/centrocusto_dao.dart';
+import '../repositories/estoque_dao.dart';
 import '../repositories/fornecedor_dao.dart';
 
 class _CampoEditavel {
@@ -182,6 +183,101 @@ class MenuNotaFiscal extends ConsoleUI {
     if (nota == null) return;
     await service.solicitarRevisao(nota, sessao);
     print('NF ${nota.numeroNota} enviada para revisão do supervisor.');
+  }
+
+  /// Assistente: exibe todas as NFs 'aberto' e aprova para 'agEntrada'.
+  Future<void> _aprovarAssistente() async {
+    clearTerminal();
+    print('\n--- APROVAR NF PARA ENTRADA (STATUS: ABERTO) ---');
+    final notas = await service.listarParaAprovacaoAssistente(sessao);
+    if (notas.isEmpty) {
+      print('Nenhuma NF com status "aberto" disponível para aprovação.');
+      return;
+    }
+    for (final n in notas) {
+      print(n);
+    }
+
+    final escolha = lerTexto('\nDeseja aprovar uma NF? [1] Sim [2] Não');
+    if (escolha != '1') {
+      print('Operação cancelada.');
+      return;
+    }
+
+    final numero = lerInt('Digite o Número da Nota que deseja aprovar');
+    final nota = await service.buscarPorNumero(numero);
+    if (nota == null) {
+      print('Nota não encontrada.');
+      return;
+    }
+
+    await service.aprovarTrabalhoAssistente(nota, sessao);
+    print('NF ${nota.numeroNota} aprovada com sucesso! Status alterado para "agEntrada".');
+  }
+
+  /// Almoxarife: consulta apenas as NFs com status 'agEntrada'.
+  Future<void> _listarAgEntrada() async {
+    clearTerminal();
+    print('\n--- NFs AGUARDANDO ENTRADA NO ESTOQUE (agEntrada) ---');
+    final notas = await service.listarAguardandoEntrada(sessao);
+    if (notas.isEmpty) {
+      print('Nenhuma NF aguardando entrada no estoque no momento.');
+      return;
+    }
+    for (final n in notas) {
+      print(n);
+    }
+  }
+
+  /// Almoxarife: exibe NFs 'agEntrada', seleciona a NF, exibe os estoques da equipe e fecha a NF.
+  Future<void> _aprovarAlmoxarife() async {
+    clearTerminal();
+    print('\n--- DAR ENTRADA NO ESTOQUE E FECHAR NF (STATUS: agEntrada) ---');
+    final notas = await service.listarAguardandoEntrada(sessao);
+    if (notas.isEmpty) {
+      print('Nenhuma NF com status "agEntrada" disponível para fechamento.');
+      return;
+    }
+    for (final n in notas) {
+      print(n);
+    }
+
+    final escolha = lerTexto('\nDeseja dar entrada em uma NF? [1] Sim [2] Não');
+    if (escolha != '1') {
+      print('Operação cancelada.');
+      return;
+    }
+
+    final numero = lerInt('Digite o Número da Nota que deseja dar entrada');
+    final nota = await service.buscarPorNumero(numero);
+    if (nota == null) {
+      print('Nota não encontrada.');
+      return;
+    }
+
+    final estoqueDao = EstoqueDao();
+    final estoquesEquipe = await estoqueDao.buscarPorEquipe(sessao.equipe);
+    if (estoquesEquipe.isEmpty) {
+      print('Nenhum estoque cadastrado para a sua equipe (Equipe ${sessao.equipe}).');
+      return;
+    }
+
+    print('\nEstoques disponíveis para a sua equipe:');
+    for (final est in estoquesEquipe) {
+      print(est);
+    }
+
+    final idEstoque = lerInt('Digite o ID do Estoque para vincular à NF');
+    final estoqueSelecionado = estoquesEquipe.where((e) => e.idestoque == idEstoque);
+    if (estoqueSelecionado.isEmpty) {
+      print('Estoque inválido ou não pertence à sua equipe!');
+      return;
+    }
+
+    await service.aprovarEntradaAlmoxarife(nota, idEstoque, sessao);
+    print(
+      'Entrada confirmada! NF ${nota.numeroNota} vinculada ao estoque "${estoqueSelecionado.first.nome}" e alterada para status "fechado".',
+    );
   }
 
   Future<void> _excluir() async {

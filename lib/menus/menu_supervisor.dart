@@ -18,7 +18,7 @@ class MenuSupervisor extends ConsoleUI {
       ];
 
   Future<void> _listar() async {
-    final notas = await service.listarEmRevisao();
+    final notas = await service.listarEmRevisao(sessao);
     if (notas.isEmpty) {
       print('Nenhuma NF aguardando revisão.');
       return;
@@ -28,7 +28,7 @@ class MenuSupervisor extends ConsoleUI {
 
   Future<void> _decidir({required bool aprovar}) async {
    
-    final notas = await service.listarEmRevisao();
+    final notas = await service.listarEmRevisao(sessao);
     if (notas.isEmpty) {
       print('Nenhuma NF aguardando revisão.');
       return;}
@@ -45,6 +45,10 @@ class MenuSupervisor extends ConsoleUI {
       return;
     }
     await service.decidirRevisao(nota, sessao, aprovar: aprovar);
-    print(aprovar ? 'NF aprovada e fechada.' : 'NF devolvida (status aberto).');
+    print(
+      aprovar
+          ? 'Revisão aprovada: estado alterado para "Em análise" e NF voltou para "aberto".'
+          : 'NF liberada/devolvida (status "aberto").',
+    );
   }
 }

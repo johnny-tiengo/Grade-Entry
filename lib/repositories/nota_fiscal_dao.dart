@@ -26,6 +26,7 @@ class NotaFiscalDao {
       dataFinalizacao: data("dataFinalizacao"),
       usuario: inteiro("usuario"),
       equipe: inteiro("equipe"),
+      estoque: inteiro("estoque"),
       setorAtraso: row.colByName("setorAtraso"),
       motivoAtraso: row.colByName("motivoAtraso"),
     );
@@ -90,11 +91,157 @@ class NotaFiscalDao {
   }
 
   // ------------------------------------------------------------------------------------
-  // NOVO: usado pelo menu do supervisor (status = 'revisao')
-
-  //A BUSCA DEVE SER FEITA NA TABELA REVISÃO
+  // NOVO: usado pelo menu do supervisor (busca na tabela revisao + notafiscal)
   Future<List<NotaFiscal>> buscarPorStatus(String status) => _consultar(
       "SELECT * FROM notafiscal WHERE statusNota = :s;", {"s": status});
+
+  // Busca NFs em revisão pendente para o supervisor (filtrando pela equipe se houver)
+  Future<List<NotaFiscal>> buscarEmRevisao({int? equipe}) {
+    if (equipe != null) {
+      return _consultar(
+        "SELECT nf.* FROM notafiscal nf "
+        "INNER JOIN revisao r ON r.notafiscal_idnotaFiscal = nf.idnotaFiscal "
+        "WHERE (nf.statusNota = 'revisao' OR r.estado = 'Pendente') "
+        "AND nf.equipe = :equipe;",
+        {"equipe": equipe},
+      );
+    }
+    return _consultar(
+      "SELECT nf.* FROM notafiscal nf "
+      "INNER JOIN revisao r ON r.notafiscal_idnotaFiscal = nf.idnotaFiscal "
+      "WHERE nf.statusNota = 'revisao' OR r.estado = 'Pendente';",
+    );
+  }
+
+  // Registra o pedido de revisão na tabela 'revisao' com estado 'Pendente' e muda statusNota para 'revisao'
+  Future<void> registrarPedidoRevisao({
+    required int idNota,
+    required int usuarioId,
+    required int? equipe,
+    required String perfilUsuario,
+  }) async {
+    MySQLConnection? conn;
+    try {
+      conn = await Database.abrirMySQL();
+
+      // // 1. Atualiza o status da NF para 'revisao'
+      // await conn.execute(
+      //   "UPDATE notafiscal SET statusNota = 'revisao' WHERE idnotaFiscal = :id;",
+      //   {"id": idNota},
+      // );
+
+      // 2. Verifica se já existe registro dessa NF na tabela revisao
+      final existente = await conn.execute(
+        "SELECT idrevisao FROM revisao WHERE notafiscal_idnotaFiscal = :id LIMIT 1;",
+        {"id": idNota},
+      );
+
+      if (existente.rows.isNotEmpty) {
+        await conn.execute(
+          "UPDATE revisao SET estado = 'Pendente', usuario = :usuario, equipe = :equipe, perfil_usuario = :perfil "
+          "WHERE notafiscal_idnotaFiscal = :id;",
+          {
+            "usuario": usuarioId,
+            "equipe": equipe,
+            "perfil": perfilUsuario,
+            "id": idNota,
+          },
+        );
+      } else {
+        await conn.execute(
+          "INSERT INTO revisao (estado, notafiscal_idnotaFiscal, usuario, equipe, perfil_usuario) "
+          "VALUES ('Pendente', :id, :usuario, :equipe, :perfil);",
+          {
+            "id": idNota,
+            "usuario": usuarioId,
+            "equipe": equipe,
+            "perfil": perfilUsuario,
+          },
+        );
+      }
+    } catch (e) {
+      print("Erro ao registrar pedido de revisão: $e");
+    } finally {
+      if (conn != null && conn.connected) await conn.close();
+    }
+  }
+
+  // Supervisor decide a revisão: atualiza o estado na tabela 'revisao' ('Em análise' ou 'Liberado') e volta a NF para 'aberto'
+  Future<void> concluirRevisaoSupervisor({
+    required int idNota,
+    required String novoEstadoRevisao,
+  }) async {
+    MySQLConnection? conn;
+    try {
+      conn = await Database.abrirMySQL();
+
+      await conn.execute(
+        "UPDATE revisao SET estado = :estado WHERE notafiscal_idnotaFiscal = :id;",
+        {"estado": novoEstadoRevisao, "id": idNota},
+      );
+
+      await conn.execute(
+        "UPDATE notafiscal SET statusNota = 'aberto' WHERE idnotaFiscal = :id;",
+        {"id": idNota},
+      );
+    } catch (e) {
+      print("Erro ao atualizar revisão pelo supervisor: $e");
+    } finally {
+      if (conn != null && conn.connected) await conn.close();
+    }
+  }
+
+  // Busca NFs com status 'aberto' (para aprovação do assistente)
+  Future<List<NotaFiscal>> buscarParaAprovacaoAssistente({int? equipe}) {
+    if (equipe != null) {
+      return _consultar(
+        "SELECT * FROM notafiscal "
+        "WHERE statusNota = 'aberto' AND equipe = :equipe;",
+        {"equipe": equipe},
+      );
+    }
+    return _consultar(
+      "SELECT * FROM notafiscal WHERE statusNota = 'aberto';",
+    );
+  }
+
+  // Busca NFs com status 'agEntrada' (para consulta e aprovação do almoxarife)
+  Future<List<NotaFiscal>> buscarAguardandoEntrada({int? equipe}) {
+    if (equipe != null) {
+      return _consultar(
+        "SELECT * FROM notafiscal "
+        "WHERE statusNota = 'agEntrada' AND equipe = :equipe;",
+        {"equipe": equipe},
+      );
+    }
+    return _consultar(
+      "SELECT * FROM notafiscal WHERE statusNota = 'agEntrada';",
+    );
+  }
+
+  // Finaliza a NF pelo almoxarife (statusNota = 'fechado', vincula estoque e grava dataFinalizacao)
+  Future<void> fecharNotaComEstoque(
+    int idNota,
+    int idEstoque,
+    DateTime dataFinalizacao,
+  ) async {
+    MySQLConnection? conn;
+    try {
+      conn = await Database.abrirMySQL();
+      var sql =
+          "UPDATE notafiscal SET statusNota = 'fechado', estoque = :estoque, dataFinalizacao = :dataFim "
+          "WHERE idnotaFiscal = :id";
+      await conn.execute(sql, {
+        "estoque": idEstoque,
+        "dataFim": dataFinalizacao,
+        "id": idNota,
+      });
+    } catch (e) {
+      print("Erro ao fechar NF e vincular ao estoque: $e");
+    } finally {
+      if (conn != null && conn.connected) await conn.close();
+    }
+  }
   //-------------------------------------------------------------------------------------
 
   // Busca NFs que estouraram o SLA de 72h (a partir de dataRecebimento) e ainda não têm setorAtraso preenchido
