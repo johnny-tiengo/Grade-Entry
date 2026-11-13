@@ -12,9 +12,9 @@ class MenuSupervisor extends ConsoleUI {
 
   @override
   List<OpcaoMenu> get opcoes => [
-        OpcaoMenu('1', 'Ver NFs em revisão', _listar),
-        OpcaoMenu('2', 'Aprovar NF (fechar)', () => _decidir(aprovar: true)),
-        OpcaoMenu('3', 'Devolver NF (reabrir)', () => _decidir(aprovar: false)),
+        OpcaoMenu('Ver NFs em revisão', _listar),
+        OpcaoMenu('Aprovar NF (fechar)', () => _decidir(aprovar: true)),
+        OpcaoMenu('Devolver NF (reabrir)', () => _decidir(aprovar: false)),
       ];
 
   Future<void> _listar() async {
@@ -27,6 +27,13 @@ class MenuSupervisor extends ConsoleUI {
   }
 
   Future<void> _decidir({required bool aprovar}) async {
+   
+    final notas = await service.listarEmRevisao();
+    if (notas.isEmpty) {
+      print('Nenhuma NF aguardando revisão.');
+      return;}
+       notas.forEach(print);
+
      final escolha = lerTexto('Deseja continuar? [1] Sim [2] Não');
     if (escolha != '1') {
       print('Operação cancelada.');

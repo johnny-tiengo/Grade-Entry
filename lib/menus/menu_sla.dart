@@ -19,22 +19,18 @@ class MenuSla extends ConsoleUI {
   @override
   List<OpcaoMenu> get opcoes => [
     OpcaoMenu(
-      '1',
       'Ver NFs da equipe com SLA estourado (pendentes de justificativa)',
       _listarPendentes,
     ),
     OpcaoMenu(
-      '2',
       'Ver todas as NFs da equipe que estouraram o SLA (histórico)',
       _listarTodasEstouradas,
     ),
     OpcaoMenu(
-      '3',
       'Preencher motivo e setor de atraso (SLA > 72h)',
       _justificarAtraso,
     ),
     OpcaoMenu(
-      '4',
       'Consultar tempo de SLA de uma NF da equipe pelo número',
       _consultarNotaIndividual,
     ),

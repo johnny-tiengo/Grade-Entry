@@ -23,17 +23,17 @@ class MenuNotaFiscal extends ConsoleUI {
 
   @override
   List<OpcaoMenu> get opcoes => sessao.ehVisitante
-      ? [OpcaoMenu('3', 'Buscar NF pelo número', buscar)]
+      ? [OpcaoMenu('Buscar NF pelo número', buscar)]
       : [
           if (!sessao.ehAlmoxarife)
-            OpcaoMenu('1', 'Cadastrar nova NF', _cadastrar),
+            OpcaoMenu('Cadastrar nova NF', _cadastrar),
 
-          OpcaoMenu('2', 'Listar NFs', _listar),
-          OpcaoMenu('3', 'Buscar NF pelo número', buscar),
-          if (!sessao.ehAlmoxarife) OpcaoMenu('4', 'Editar NF', _editar),
+          OpcaoMenu('Listar NFs', _listar),
+          OpcaoMenu('Buscar NF pelo número', buscar),
+          if (!sessao.ehAlmoxarife) OpcaoMenu('Editar NF', _editar),
           if (!sessao.ehSupervisor)
-            OpcaoMenu('5', 'Pedir revisão ao supervisor', _pedirRevisao),
-          if (sessao.ehAdmin) OpcaoMenu('6', 'Excluir NF', _excluir),
+            OpcaoMenu('Pedir revisão ao supervisor', _pedirRevisao),
+          if (sessao.ehAdmin) OpcaoMenu('Excluir NF', _excluir),
         ];
 
   Future<void> _cadastrar() async {
@@ -109,6 +109,15 @@ class MenuNotaFiscal extends ConsoleUI {
   }
 
   Future<void> _editar() async {
+    clearTerminal();
+    print('\n--- LISTA DE NOTAS FISCAIS ---');
+    final notas = await service.listar();
+    if (notas.isEmpty) {
+      print('Nenhuma Nota Fiscal foi encontrada no banco de dados.');
+      return;
+    }
+    notas.forEach(print);
+    
     final escolha = lerTexto('Deseja continuar? [1] Sim [2] Não');
     if (escolha != '1') {
       print('Operação cancelada.');

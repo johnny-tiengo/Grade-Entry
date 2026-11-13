@@ -3,10 +3,10 @@ import 'package:intl/intl.dart';
 
 /// Uma linha do menu: código digitado, texto exibido e ação executada.
 class OpcaoMenu {
-  final String codigo;
+//  final String codigo;
   final String texto;
   final Future<void> Function() acao;
-  const OpcaoMenu(this.codigo, this.texto, this.acao);
+  const OpcaoMenu(/*this.codigo, */this.texto, this.acao);
 }
 
 /// Base de todos os menus: mostra as opções, lê a escolha, valida a entrada
@@ -18,16 +18,36 @@ abstract class ConsoleUI {
 
   Future<void> executar() async {
     while (true) {
+      final lista = opcoes;
+
       print('\n--- $titulo ---');
-      for (final o in opcoes) {
+     for (var i=0; i < lista.length; i++){
+      print('${i+1}. ${lista[i].texto}');
+     }
+     
+      /*for (final o in opcoes) {
         print('${o.codigo}. ${o.texto}');
-      }
+      }*/
       print('0. $textoSaida');
 
       final escolha = lerTexto('Escolha uma opção');
       if (escolha == '0') return;
 
-      final achou = opcoes.where((o) => o.codigo == escolha);
+      final n = int.tryParse(escolha);
+      if (n == null || n < 1 || n > lista.length) {
+        print('Opção inválida! Tente novamente.');
+        continue;
+      }
+
+      try {
+        await lista[n - 1].acao();
+      } on ArgumentError catch (e) {
+        print('Não foi possível concluir: ${e.message}');
+      } catch (e) {
+        print('Erro: $e');
+      }
+
+      /*final achou = opcoes.where((o) => o.codigo == escolha);
       if (achou.isEmpty) {
         print('Opção inválida! Tente novamente.');
         continue;
@@ -39,7 +59,8 @@ abstract class ConsoleUI {
       } catch (e) {
         print('Erro: $e');
       }
-    }
+    }*/
+  }
   }
 
   String lerTexto(String rotulo, {bool obrigatorio = true}) {

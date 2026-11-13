@@ -17,6 +17,7 @@ class AuthService {
     } catch (e) {
       print("Erro na autenticação. [$e]");
     }
+    return null;
   }
 
   /// Exibe a tela de login simples no terminal
