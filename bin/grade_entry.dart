@@ -31,7 +31,8 @@ Future<void> main() async {
   final sessao = Sessao(
     usuarioId: usuario.id!,
     username: usuario.nome,
-    perfil: usuario.perfil,
+    // perfil: usuario.perfil,
+    perfil: perfilDe(usuario.perfil),
     equipe: usuario.equipe,
     //perfil: usuario.id == 1 ? Perfil.admin : Perfil.assistente,
      // Ajuste conforme necessário

@@ -7,7 +7,7 @@ enum Perfil { assistente, supervisor, almoxarife, admin, visitante }
 class Sessao {
   final int usuarioId;
   final String username;
-  final String perfil;
+  final Perfil perfil;
   final int? equipe;
   const Sessao({
     required this.usuarioId,
@@ -15,11 +15,11 @@ class Sessao {
     required this.perfil,
     required this.equipe,
   });
+    bool get ehAdmin => perfil == Perfil.admin;
+    bool get ehAssistente => perfil == Perfil.assistente;
+    bool get ehSupervisor => perfil == Perfil.supervisor;
+    bool get ehAlmoxarife => perfil == Perfil.almoxarife;
+    bool get ehVisitante => perfil == Perfil.visitante;
 
-  bool get ehAdmin => perfil == Perfil.admin;
-  bool get ehAssistente => perfil == Perfil.assistente;
-  bool get ehSupervisor => perfil == Perfil.supervisor;
-  bool get ehAlmoxarife => perfil == Perfil.almoxarife;
-  bool get ehVisitante => perfil == Perfil.visitante;
 
 }

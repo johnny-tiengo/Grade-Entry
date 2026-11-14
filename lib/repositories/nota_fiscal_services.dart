@@ -93,7 +93,7 @@ class NotaFiscalService {
       idNota: nota.id!,
       usuarioId: quem.usuarioId,
       equipe: quem.equipe,
-      perfilUsuario: quem.perfil,
+      perfilUsuario: quem.perfil.toString(),
     );
   }
 
