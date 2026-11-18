@@ -1,6 +1,6 @@
 import 'package:grade_entry/models/nota_fiscal.dart';
 import 'package:grade_entry/models/sessao.dart';
-import 'package:grade_entry/repositories/nota_fiscal_services.dart';
+import 'package:grade_entry/services/nota_fiscal_services.dart';
 import 'package:grade_entry/views/console_ui.dart';
 
 import '../repositories/centrocusto_dao.dart';
@@ -34,6 +34,10 @@ class MenuNotaFiscal extends ConsoleUI {
           if (!sessao.ehAlmoxarife) OpcaoMenu('Editar NF', _editar),
           if (!sessao.ehSupervisor)
             OpcaoMenu('Pedir revisão ao supervisor', _pedirRevisao),
+          if (sessao.ehAssistente || sessao.ehAdmin)
+            OpcaoMenu('Aprovar nota', _aprovarAssistente),
+          if (sessao.ehAlmoxarife || sessao.ehAdmin)
+            OpcaoMenu('Dar entrada no estoque', _aprovarAlmoxarife),
           if (sessao.ehAdmin) OpcaoMenu('Excluir NF', _excluir),
         ];
 
@@ -213,20 +217,6 @@ class MenuNotaFiscal extends ConsoleUI {
 
     await service.aprovarTrabalhoAssistente(nota, sessao);
     print('NF ${nota.numeroNota} aprovada com sucesso! Status alterado para "agEntrada".');
-  }
-
-  /// Almoxarife: consulta apenas as NFs com status 'agEntrada'.
-  Future<void> _listarAgEntrada() async {
-    clearTerminal();
-    print('\n--- NFs AGUARDANDO ENTRADA NO ESTOQUE (agEntrada) ---');
-    final notas = await service.listarAguardandoEntrada(sessao);
-    if (notas.isEmpty) {
-      print('Nenhuma NF aguardando entrada no estoque no momento.');
-      return;
-    }
-    for (final n in notas) {
-      print(n);
-    }
   }
 
   /// Almoxarife: exibe NFs 'agEntrada', seleciona a NF, exibe os estoques da equipe e fecha a NF.

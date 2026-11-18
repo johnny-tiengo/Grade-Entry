@@ -101,7 +101,7 @@ class NotaFiscalDao {
       return _consultar(
         "SELECT nf.* FROM notafiscal nf "
         "INNER JOIN revisao r ON r.notafiscal_idnotaFiscal = nf.idnotaFiscal "
-        "WHERE (nf.statusNota = 'revisao' OR r.estado = 'Pendente') "
+        "WHERE (r.estado = 'Em análise' OR r.estado = 'Pendente' OR r.estado = 'Encerrado') "
         "AND nf.equipe = :equipe;",
         {"equipe": equipe},
       );
@@ -109,7 +109,7 @@ class NotaFiscalDao {
     return _consultar(
       "SELECT nf.* FROM notafiscal nf "
       "INNER JOIN revisao r ON r.notafiscal_idnotaFiscal = nf.idnotaFiscal "
-      "WHERE nf.statusNota = 'revisao' OR r.estado = 'Pendente';",
+      "WHERE r.estado = 'Em análise' OR r.estado = 'Pendente' OR r.estado = 'Encerrado';",
     );
   }
 
@@ -179,11 +179,11 @@ class NotaFiscalDao {
         "UPDATE revisao SET estado = :estado WHERE notafiscal_idnotaFiscal = :id;",
         {"estado": novoEstadoRevisao, "id": idNota},
       );
-
-      await conn.execute(
-        "UPDATE notafiscal SET statusNota = 'aberto' WHERE idnotaFiscal = :id;",
-        {"id": idNota},
-      );
+      // Não tem mais alteração na tabela da nota, sempre vai fica como aberto.
+      // await conn.execute(
+      //   "UPDATE notafiscal SET statusNota = 'aberto' WHERE idnotaFiscal = :id;",
+      //   {"id": idNota},
+      // );
     } catch (e) {
       print("Erro ao atualizar revisão pelo supervisor: $e");
     } finally {
@@ -191,18 +191,45 @@ class NotaFiscalDao {
     }
   }
 
-  // Busca NFs com status 'aberto' (para aprovação do assistente)
+  // Busca NFs com status 'aberto' da equipe que não estejam 'Pendente' ou 'Em análise' na tabela revisao
+  // (ou seja, não estão na tabela revisao ou estão com estado 'Liberado')
   Future<List<NotaFiscal>> buscarParaAprovacaoAssistente({int? equipe}) {
     if (equipe != null) {
       return _consultar(
-        "SELECT * FROM notafiscal "
-        "WHERE statusNota = 'aberto' AND equipe = :equipe;",
+        "SELECT nf.* FROM notafiscal nf "
+        "LEFT JOIN revisao r ON r.notafiscal_idnotaFiscal = nf.idnotaFiscal "
+        "WHERE nf.statusNota = 'aberto' "
+        "AND (r.idrevisao IS NULL OR r.estado = 'Liberado') "
+        "AND nf.equipe = :equipe;",
         {"equipe": equipe},
       );
     }
     return _consultar(
-      "SELECT * FROM notafiscal WHERE statusNota = 'aberto';",
+      "SELECT nf.* FROM notafiscal nf "
+      "LEFT JOIN revisao r ON r.notafiscal_idnotaFiscal = nf.idnotaFiscal "
+      "WHERE nf.statusNota = 'aberto' "
+      "AND (r.idrevisao IS NULL OR r.estado = 'Liberado');",
     );
+  }
+
+  // Verifica se a NF está bloqueada na tabela revisao ('Pendente' ou 'Em análise')
+  Future<bool> estaEmRevisaoPendenteOuAnalise(int idNota) async {
+    MySQLConnection? conn;
+    try {
+      conn = await Database.abrirMySQL();
+      final res = await conn.execute(
+        "SELECT idrevisao FROM revisao "
+        "WHERE notafiscal_idnotaFiscal = :id "
+        "AND estado IN ('Pendente', 'Em análise', 'Encerrado') LIMIT 1;",
+        {"id": idNota},
+      );
+      return res.rows.isNotEmpty;
+    } catch (e) {
+      print("Erro ao verificar estado de revisão da NF: $e");
+      return false;
+    } finally {
+      if (conn != null && conn.connected) await conn.close();
+    }
   }
 
   // Busca NFs com status 'agEntrada' (para consulta e aprovação do almoxarife)
