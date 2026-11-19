@@ -93,11 +93,11 @@ class MenuNotaFiscal extends ConsoleUI {
   }
 
   Future<NotaFiscal?> _pedirNota() async {
-    final escolha = lerTexto('Deseja continuar? [1] Sim [2] Não');
+   /* final escolha = lerTexto('Deseja continuar? [1] Sim [2] Não');
     if (escolha != '1') {
       print('Operação cancelada.');
       return null;
-    }
+    }*/
     final nota = await service.buscarPorNumero(lerInt('Número da Nota'));
     if (nota == null) print('Nota não encontrada.');
     return nota;
@@ -119,11 +119,6 @@ class MenuNotaFiscal extends ConsoleUI {
     }
     notas.forEach(print);
     
-    final escolha = lerTexto('Deseja continuar? [1] Sim [2] Não');
-    if (escolha != '1') {
-      print('Operação cancelada.');
-      return;
-    }
     final nota = await _pedirNota();
     if (nota == null) return;
     print(nota);
@@ -179,9 +174,19 @@ class MenuNotaFiscal extends ConsoleUI {
   }
 
   Future<void> _pedirRevisao() async {
+       clearTerminal();
+    print('\n--- LISTA DE NOTAS FISCAIS ---');
+    final notas = await service.listar();
+    if (notas.isEmpty) {
+      print('Nenhuma Nota Fiscal foi encontrada no banco de dados.');
+      return;
+    }
+    notas.forEach(print);
+
     final nota = await _pedirNota();
     if (nota == null) return;
     await service.solicitarRevisao(nota, sessao);
+    clearTerminal();
     print('NF ${nota.numeroNota} enviada para revisão do supervisor.');
   }
 
@@ -281,10 +286,20 @@ class MenuNotaFiscal extends ConsoleUI {
   }
 
   Future<void> _excluir() async {
+      clearTerminal();
+    print('\n--- LISTA DE NOTAS FISCAIS ---');
+    final notas = await service.listar();
+    if (notas.isEmpty) {
+      print('Nenhuma Nota Fiscal foi encontrada no banco de dados.');
+      return;
+    }
+    notas.forEach(print);
+
     final nota = await _pedirNota();
     if (nota == null) return;
     if (confirmar('Tem certeza que deseja apagar a NF ${nota.numeroNota}?')) {
       await service.excluir(nota);
+      clearTerminal();
       print('NF excluída.');
     }
   }

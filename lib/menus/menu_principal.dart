@@ -49,6 +49,6 @@ class MenuPrincipal extends ConsoleUI {
           OpcaoMenu(
             'Controle de SLA (72h)',
             () => MenuSla(sessao, service).executar(),
-          ),
+          ), 
         ];
 }

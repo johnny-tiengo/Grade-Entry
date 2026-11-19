@@ -103,4 +103,5 @@ void clearTerminal() {
   // \x1B[3J = apaga todo o buffer de rolagem (scrollback)
   stdout.write('\x1B[2J\x1B[0;0H\x1B[3J');
 }
+
 }
