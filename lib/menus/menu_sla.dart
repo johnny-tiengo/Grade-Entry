@@ -1,6 +1,6 @@
 import 'package:grade_entry/models/nota_fiscal.dart';
 import 'package:grade_entry/models/sessao.dart';
-import 'package:grade_entry/repositories/nota_fiscal_services.dart';
+import 'package:grade_entry/services/nota_fiscal_services.dart';
 import 'package:grade_entry/services/sla_service.dart';
 import 'package:grade_entry/views/console_ui.dart';
 

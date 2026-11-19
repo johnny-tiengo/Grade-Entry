@@ -5,7 +5,7 @@ import '../repositories/nota_fiscal_dao.dart';
 /// Regras de negócio das NFs. Os menus só leem dados e chamam estes métodos.
 class NotaFiscalService {
   static const statusAberto = 'aberto';
-  static const statusRevisao = 'revisao';
+  // static const statusRevisao = 'revisao';
   static const statusAgEntrada = 'agEntrada';
   static const statusFechado = 'fechado';
 
@@ -114,12 +114,12 @@ class NotaFiscalService {
         'Só o supervisor pode decidir a revisão desta NF.',
       );
     }
-    if (nota.statusNota != statusRevisao) {
-      throw ArgumentError('Esta NF não está em revisão.');
-    }
+    // if (nota.statusNota != statusRevisao) {
+    //   throw ArgumentError('Esta NF não está em revisão.');
+    // }
     await _dao.concluirRevisaoSupervisor(
       idNota: nota.id!,
-      novoEstadoRevisao: aprovar ? 'Em análise' : 'Liberado',
+      novoEstadoRevisao: aprovar ? 'Liberado' : 'Encerrado',
     );
   }
 
@@ -138,6 +138,11 @@ class NotaFiscalService {
     if (nota.statusNota != statusAberto) {
       throw ArgumentError(
         'Apenas NFs com status "aberto" podem ser enviadas para "agEntrada".',
+      );
+    }
+    if (await _dao.estaEmRevisaoPendenteOuAnalise(nota.id!)) {
+      throw ArgumentError(
+        'Esta NF está em revisão ("Pendente", "Em análise" ou "Encerrado") e precisa estar "Liberado" para ser aprovada.',
       );
     }
     await _dao.atualizar(nota.id!, 'statusNota', statusAgEntrada);

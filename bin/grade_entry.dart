@@ -5,7 +5,7 @@ void main(List<String> arguments) async {
 }*/
 import 'package:grade_entry/models/sessao.dart';
 import 'package:grade_entry/repositories/nota_fiscal_dao.dart';
-import 'package:grade_entry/repositories/nota_fiscal_services.dart';
+import 'package:grade_entry/services/nota_fiscal_services.dart';
 import 'package:grade_entry/menus/menu_principal.dart';
 import 'package:grade_entry/services/auth_service.dart';
 
