@@ -34,20 +34,11 @@ class MenuSupervisor extends ConsoleUI {
       return;}
        notas.forEach(print);
 
-<<<<<<< HEAD
-     final escolha = lerTexto('Deseja continuar? [1] Sim [2] Não');
-    if (escolha != '1') {
-      clearTerminal();
-      print('Operação cancelada.');
-      return;
-    }
-=======
     //  final escolha = lerTexto('Deseja continuar? [1] Sim [2] Não');
     // if (escolha != '1') {
     //   print('Operação cancelada.');
     //   return;
     // }
->>>>>>> 91272ee9878c17a03ec30607bf309b1cac8a6ccc
     final nota = await service.buscarPorNumero(lerInt('Número da Nota'));
     if (nota == null) {
       print('Nota não encontrada.');
